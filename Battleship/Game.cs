@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -12,10 +13,11 @@ namespace Battleship
     class Game
     {
         IPEndPoint ipEndpoint;
-        public List<Field> playerFields;
-        public List<Field> enemyFields;
+        public Field lastField;
+        public List<List<Field>> playerFields;
+        public List<List<Field>> enemyFields;
         public int gameStage { get; set; }
-
+/*
         public string IpAdress
         {
             get { return ipAdress; }
@@ -26,45 +28,166 @@ namespace Battleship
             get { return portAdress; }
             set { portAdress = value; }
         }
-
+        */
         public Game()
         {
             gameStage = 0;
         }
 
-        public void ConnectToServer(string IpAdress, int PortAdress)
+        public void PlaceShip(Field field, int size, string ship)
         {
-            ipEndpoint = null;
-            foreach (IPAddress ipAddress in Dns.GetHostEntry(IpAdress).AddressList)
+            bool block = true;
+            size = size - 1;
+            if (!(field.shipType == "none")) return;
+            DisableAllButtons();
+            field.shipType = ship;
+            if (field.kol + size < 8)
             {
-               if(ipAddress.AddressFamily == AddressFamily.InterNetwork)
+                for (int i = field.kol + 1; i <= field.kol + size; i++)
+                    if (playerFields[field.wier][i].shipType != "none") block = false;
+
+                if (block)
                 {
-                    this.ipEndpoint =
-                        new IPEndPoint(ipAddress, PortAdress);
-                    break;
+                    EnableButton(playerFields[field.wier][field.kol+size]);
+                    playerFields[field.wier][field.kol + size].Button.BackColor = Color.Aquamarine;
+                    gameStage = 10;
                 }
             }
-            if (ipEndpoint == null) return;
+            block = true;
+            if (field.kol - size >= 0)
+            {
+                for (int i = field.kol - 1; i >= field.kol - size; i--)
+                    if (playerFields[field.wier][i].shipType != "none") block = false;
 
-            Socket clientSocket = new Socket(
-                AddressFamily.InterNetwork,
-                SocketType.Stream,
-                ProtocolType.Tcp);
+                if (block)
+                {
+                    EnableButton(playerFields[field.wier][field.kol - size]);
+                    playerFields[field.wier][field.kol - size].Button.BackColor = Color.Aquamarine;
+                    gameStage = 10;
+                }
+            }
+            block = true;
+            if (field.wier + size < 8)
+            {
+                for (int i = field.wier + 1; i <= field.wier + size; i++)
+                    if (playerFields[i][field.kol].shipType != "none") block = false;
 
-            IAsyncResult asyncConnect = clientSocket.BeginConnect(
-              ipEndpoint, new AsyncCallback(firstConnect), clientSocket);
+                if (block)
+                {
+                    EnableButton(playerFields[field.wier + size][field.kol]);
+                    playerFields[field.wier + size][field.kol].Button.BackColor = Color.Aquamarine;
+                    gameStage = 10;
+                }
+            }
+            block = true;
+            if (field.wier - size >= 0)
+            {
+                for (int i = field.wier - 1; i >= field.wier - size; i--)
+                    if (playerFields[i][field.kol].shipType != "none") block = false;
 
-            Console.Write("Lacze sie.");
-            /* if (writeDot(asyncConnect) == true)
-             {
-                 Thread.Sleep(30);
-             }*/
+                if (block)
+                {
+                    EnableButton(playerFields[field.wier - size][field.kol]);
+                    playerFields[field.wier - size][field.kol].Button.BackColor = Color.Aquamarine;
+                    gameStage = 10;
+                }
+            }
+            if (gameStage !=10)
+            {
+                EnableAllButtons();
+                CleanEmpty();
+            }
+
         }
 
-        private void firstConnect(IAsyncResult ar)
+        public void FillShip(Field field, Field shipStart)
         {
-            throw new NotImplementedException();
+            if (field.kol == shipStart.kol)
+            {
+                int begin = Math.Min(field.wier, shipStart.wier);
+                int end = Math.Max(field.wier, shipStart.wier);
+                for (int i = begin;i <= end; i++)
+                {
+                    playerFields[i][field.kol].Button.BackColor = Color.Purple;
+                    playerFields[i][field.kol].shipType = shipStart.shipType;
+                }
+            }
+            else if (field.wier == shipStart.wier)
+            {
+                int begin = Math.Min(field.kol, shipStart.kol);
+                int end = Math.Max(field.kol, shipStart.kol);
+                for (int i = begin; i <= end; i++)
+                {
+                    playerFields[field.wier][i].Button.BackColor = Color.Purple;
+                    playerFields[field.wier][i].shipType = shipStart.shipType;
+                }
+            }
+            EnableAllButtons();
+        }
+        public void CleanEmpty()
+        {
+            foreach (var list in playerFields)
+                foreach (Field f in list)
+                {
+                    if (f.shipType == "none")
+                        f.Button.BackColor = Color.White;
+                }
+        }
+        public void EnableButton(Field field)
+        {
+            field.Button.Enabled = true;            
         }
 
+        public void DisableAllButtons()
+        {
+            foreach(var list in playerFields)
+                foreach (Field f in list)
+                {
+                    f.Button.Enabled = false;
+                }
+        }
+        public void EnableAllButtons()
+        {
+            foreach (var list in playerFields)
+                foreach (Field f in list)
+                {
+                    f.Button.Enabled = true;
+                }
+        }
+        /*
+                public void ConnectToServer(string IpAdress, int PortAdress)
+                {
+                    ipEndpoint = null;
+                    foreach (IPAddress ipAddress in Dns.GetHostEntry(IpAdress).AddressList)
+                    {
+                       if(ipAddress.AddressFamily == AddressFamily.InterNetwork)
+                        {
+                            this.ipEndpoint =
+                                new IPEndPoint(ipAddress, PortAdress);
+                            break;
+                        }
+                    }
+                    if (ipEndpoint == null) return;
+
+                    Socket clientSocket = new Socket(
+                        AddressFamily.InterNetwork,
+                        SocketType.Stream,
+                        ProtocolType.Tcp);
+
+                    IAsyncResult asyncConnect = clientSocket.BeginConnect(
+                      ipEndpoint, new AsyncCallback(firstConnect), clientSocket);
+
+                    Console.Write("Lacze sie.");
+                     if (writeDot(asyncConnect) == true)
+                     {
+                         Thread.Sleep(30);
+                     }
+                }
+
+                private void firstConnect(IAsyncResult ar)
+                {
+                    throw new NotImplementedException();
+                }
+            */
     }
 }

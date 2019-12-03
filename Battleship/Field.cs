@@ -12,11 +12,17 @@ namespace Battleship
 
         public int kol { get; set; }
         public int wier { get; set; }
+        public bool isHit = false;
+        public string shipType;
+        public int index { get; private set; }
+
 
         public Field(int kol_, int wier_)
         {
             kol = kol_;
             wier = wier_;
+            shipType = "none";
+            index = wier * 8 + kol;
         }
     }
 }

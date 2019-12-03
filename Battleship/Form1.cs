@@ -24,30 +24,48 @@ namespace Battleship
         {
             Button click = sender as Button;
             Field field = null;
-            click.BackColor = Color.Green;
-            foreach (Field search in this.game.playerFields)
+            //click.BackColor = Color.Green;
+            foreach (var list in this.game.playerFields)
             {
-                if (search.Button==click)
+                foreach (Field search in list)
                 {
-                    field = search;
-                    break;
+                    if (search.Button == click)
+                    {
+                        field = search;
+                        break;
+                    }
                 }
             }
-        
-        click.Text = field.kol + ":" + field.wier;
+
+            click.Text = field.kol + ":" + field.wier;
+
+            if(game.gameStage == 0)
+            {
+                game.PlaceShip(field, 3, "idk");
+            }
+
+            else if(game.gameStage == 10)
+            {
+                game.FillShip(field, game.lastField);
+                game.CleanEmpty();
+                game.gameStage = 0;
+            }
+            game.lastField = field;
+
         }
 
         Game game = new Game();
         public void AddFields()
         {
-            List<Field> listaField = new List<Field>();
-            for (int i=0;i<8;i++)
+            List<List<Field>> listaField = new List<List<Field>>();
+            for (int i = 0; i < 8; i++)
             {
+                listaField.Add(new List<Field>());
                 for (int j=0;j<8;j++)
                 {
                     int bok = 45;
                     System.Windows.Forms.Button btn = new System.Windows.Forms.Button();
-                    Field field = new Field(i,j);
+                    Field field = new Field(j,i);
                     System.Drawing.Size size = new System.Drawing.Size(bok,bok);
                     btn.Size = size;
                     btn.Top = 75 + i * bok;
@@ -56,8 +74,8 @@ namespace Battleship
                     btn.Text = "";
                     btn.Click += new EventHandler(this.player1fields);
                     field.Button = btn;
-                    listaField.Add(field);
-                    this.Controls.Add(listaField.Last().Button);
+                    listaField.Last().Add(field);
+                    this.Controls.Add(listaField.Last().Last().Button);
                 }
             }
 
@@ -70,28 +88,33 @@ namespace Battleship
             Button click = sender as Button;
             Field field = null;
             click.BackColor = Color.Green;
-            foreach (Field search in this.game.enemyFields)
+            foreach (var list in this.game.enemyFields)
             {
-                if (search.Button == click)
+                foreach (Field search in list)
                 {
-                    field = search;
-                    break;
+                    if (search.Button == click)
+                    {
+                        field = search;
+                        break;
+                    }
                 }
             }
+
 
             click.Text = field.kol + ":" + field.wier;
         }
 
         public void AddEnemyFields()
         {
-            List<Field> listaField = new List<Field>();
+            List<List<Field>> listaField = new List<List<Field>>();
             for (int i = 0; i < 8; i++)
             {
+                listaField.Add(new List<Field>());
                 for (int j = 0; j < 8; j++)
                 {
                     int bok = 45;
                     System.Windows.Forms.Button btn = new System.Windows.Forms.Button();
-                    Field field = new Field(i, j);
+                    Field field = new Field(j,i);
                     System.Drawing.Size size = new System.Drawing.Size(bok, bok);
                     btn.Size = size;
                     btn.Top = 75 + i * bok;
@@ -100,8 +123,8 @@ namespace Battleship
                     btn.Text = "";
                     btn.Click += new EventHandler(this.player2fields);
                     field.Button = btn;
-                    listaField.Add(field);
-                    this.Controls.Add(listaField.Last().Button);
+                    listaField.Last().Add(field);
+                    this.Controls.Add(listaField.Last().Last().Button);
                 }
             }
             this.game.enemyFields = listaField;
@@ -109,7 +132,7 @@ namespace Battleship
 
         private void serverBut_Click(object sender, EventArgs e)
         {
-            using (serverForm form = new serverForm())
+           /* using (serverForm form = new serverForm())
             {
                 var result = form.ShowDialog();
                 if (result == DialogResult.OK)
@@ -132,12 +155,9 @@ namespace Battleship
                     MessageBox.Show("Wystapil blad");
                     return;
                 }
-            }
+            }*/
+            
         }
 
-        public void placeShip()
-        {
-            foreach(Button field )
-        }
     }
 }
