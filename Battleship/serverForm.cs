@@ -12,10 +12,35 @@ namespace Battleship
 {
     public partial class serverForm : Form
     {
-        string ipServer;
-        string portServer;
-        bool isPlayer = false;
-        bool isGuest = false;
+        private string ipServer;
+        private string portServer;
+        private bool isPlayer = false;
+        private bool isGuest = false;
+
+        public string IpServer
+        {
+            get { return ipServer; }
+            set { ipServer = value; }
+        }
+
+        public string PortServer
+        {
+            get { return portServer; }
+            set { portServer = value; }
+        }
+
+        public bool IsPlayer
+        {
+            get { return isPlayer; }
+            set { isPlayer = value; }
+        }
+
+        public bool IsGuest
+        {
+            get { return isGuest; }
+            set { isGuest = value; }
+        }
+
 
         public serverForm()
         {
@@ -26,10 +51,21 @@ namespace Battleship
         {
             ipServer = textBox1.Text;
             portServer = textBox2.Text;
-            if((textBox1.Text =="") || (textBox2.Text == "") MessageBox.Show("Nieprawidłowa wartość");
+            if ((textBox1.Text == "") || (textBox2.Text == ""))
+            {
+                MessageBox.Show("Nieprawidłowa wartość");
+                return;
+            }
             if (radioButton1.Checked) isPlayer = true;
-            if (radioButton2.Checked) isGuest = true;
-            else MessageBox.Show("Musisz wybrać!");
+            else if (radioButton2.Checked) isGuest = true;
+            else
+            {
+                MessageBox.Show("Musisz wybrać!");
+                return;
+            }
+            this.DialogResult = DialogResult.OK;
+            this.Close();
+
         }
     }
 }
