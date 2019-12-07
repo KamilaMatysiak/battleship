@@ -64,6 +64,7 @@
             this.label32 = new System.Windows.Forms.Label();
             this.label33 = new System.Windows.Forms.Label();
             this.label34 = new System.Windows.Forms.Label();
+            this.ordersLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -512,11 +513,20 @@
             this.label34.TabIndex = 99;
             this.label34.Text = "Player 2";
             // 
+            // ordersLabel
+            // 
+            this.ordersLabel.AutoSize = true;
+            this.ordersLabel.Location = new System.Drawing.Point(38, 581);
+            this.ordersLabel.Name = "ordersLabel";
+            this.ordersLabel.Size = new System.Drawing.Size(0, 17);
+            this.ordersLabel.TabIndex = 100;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1184, 630);
+            this.Controls.Add(this.ordersLabel);
             this.Controls.Add(this.label34);
             this.Controls.Add(this.label33);
             this.Controls.Add(this.label17);
@@ -596,6 +606,7 @@
         private System.Windows.Forms.Label label32;
         private System.Windows.Forms.Label label33;
         private System.Windows.Forms.Label label34;
+        private System.Windows.Forms.Label ordersLabel;
     }
 }
 

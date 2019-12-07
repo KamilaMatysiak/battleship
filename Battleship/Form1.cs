@@ -39,18 +39,48 @@ namespace Battleship
 
             click.Text = field.kol + ":" + field.wier;
 
-            if(game.gameStage == 0)
-            {
-                game.PlaceShip(field, 3, "idk");
-            }
-
-            else if(game.gameStage == 10)
+            if(game.placingShip)
             {
                 game.FillShip(field, game.lastField);
                 game.CleanEmpty();
-                game.gameStage = 0;
+                game.placingShip = false;
             }
-            game.lastField = field;
+            else
+            {
+                switch (game.gameStage)
+                {
+                    case 0:
+                        ordersLabel.Text = "Place: Battleship";
+                        game.PlaceShip(field, 4, "D");
+                        game.ChangeGameStage(1);
+                        break;
+
+                    case 1:
+                        ordersLabel.Text = "Place: Destroyer";
+                        game.PlaceShip(field, 3, "C");
+                        game.ChangeGameStage(2);
+                        break;
+
+                    case 2:
+                        ordersLabel.Text = "Place: Destroyer";
+                        game.PlaceShip(field, 3, "B");
+                        game.ChangeGameStage(3);
+                        break;
+
+                    case 3:
+                        ordersLabel.Text = "Place: Submarine";
+                        game.PlaceShip(field, 2, "A");
+                        game.ChangeGameStage(4);
+                        break;
+
+                    default:
+                        game.DisableAllButtons();
+                        break;
+                }
+            }
+                 
+       
+                game.lastField = field;
 
         }
 
@@ -100,8 +130,38 @@ namespace Battleship
                 }
             }
 
+            if (game.gameStage < 5)
+            {
+            
+            }
+            else
+            {
+                switch (game.gameStage)
+                {
+                    case 10:
+                        
+                        break;
+
+                    case 11:
+                        
+                        break;
+
+                    case 12:
+
+                        break;
+
+                    case 13:
+
+                        break;
+
+                    default:
+                        break;
+                }
+            }
 
             click.Text = field.kol + ":" + field.wier;
+
+
         }
 
         public void AddEnemyFields()

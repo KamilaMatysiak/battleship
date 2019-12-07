@@ -12,31 +12,26 @@ namespace Battleship
 {
     class Game
     {
-        IPEndPoint ipEndpoint;
         public Field lastField;
         public List<List<Field>> playerFields;
         public List<List<Field>> enemyFields;
+        public bool placingShip = false;
         public int gameStage { get; set; }
-/*
-        public string IpAdress
-        {
-            get { return ipAdress; }
-            set { ipAdress = value; }
-        }
-        public string PortAdress
-        {
-            get { return portAdress; }
-            set { portAdress = value; }
-        }
-        */
+
         public Game()
         {
             gameStage = 0;
         }
 
+        public void ChangeGameStage(int nr)
+        {
+            gameStage = nr;
+        }
+
         public void PlaceShip(Field field, int size, string ship)
         {
             bool block = true;
+            
             size = size - 1;
             if (!(field.shipType == "none")) return;
             DisableAllButtons();
@@ -50,7 +45,7 @@ namespace Battleship
                 {
                     EnableButton(playerFields[field.wier][field.kol+size]);
                     playerFields[field.wier][field.kol + size].Button.BackColor = Color.Aquamarine;
-                    gameStage = 10;
+                    placingShip = true;
                 }
             }
             block = true;
@@ -63,7 +58,7 @@ namespace Battleship
                 {
                     EnableButton(playerFields[field.wier][field.kol - size]);
                     playerFields[field.wier][field.kol - size].Button.BackColor = Color.Aquamarine;
-                    gameStage = 10;
+                    placingShip = true;
                 }
             }
             block = true;
@@ -76,7 +71,7 @@ namespace Battleship
                 {
                     EnableButton(playerFields[field.wier + size][field.kol]);
                     playerFields[field.wier + size][field.kol].Button.BackColor = Color.Aquamarine;
-                    gameStage = 10;
+                    placingShip = true;
                 }
             }
             block = true;
@@ -89,15 +84,15 @@ namespace Battleship
                 {
                     EnableButton(playerFields[field.wier - size][field.kol]);
                     playerFields[field.wier - size][field.kol].Button.BackColor = Color.Aquamarine;
-                    gameStage = 10;
+                    placingShip = true;
                 }
             }
-            if (gameStage !=10)
+
+            if (!placingShip)
             {
                 EnableAllButtons();
                 CleanEmpty();
             }
-
         }
 
         public void FillShip(Field field, Field shipStart)
@@ -124,6 +119,7 @@ namespace Battleship
             }
             EnableAllButtons();
         }
+
         public void CleanEmpty()
         {
             foreach (var list in playerFields)
@@ -133,6 +129,7 @@ namespace Battleship
                         f.Button.BackColor = Color.White;
                 }
         }
+
         public void EnableButton(Field field)
         {
             field.Button.Enabled = true;            
@@ -146,6 +143,16 @@ namespace Battleship
                     f.Button.Enabled = false;
                 }
         }
+
+        public void DisableAllEnemyButtons()
+        {
+            foreach (var list in enemyFields)
+                foreach (Field f in list)
+                {
+                    f.Button.Enabled = false;
+                }
+        }
+
         public void EnableAllButtons()
         {
             foreach (var list in playerFields)
@@ -154,40 +161,14 @@ namespace Battleship
                     f.Button.Enabled = true;
                 }
         }
-        /*
-                public void ConnectToServer(string IpAdress, int PortAdress)
+
+        public void EnableAllEnemyButtons()
+        {
+            foreach (var list in enemyFields)
+                foreach (Field f in list)
                 {
-                    ipEndpoint = null;
-                    foreach (IPAddress ipAddress in Dns.GetHostEntry(IpAdress).AddressList)
-                    {
-                       if(ipAddress.AddressFamily == AddressFamily.InterNetwork)
-                        {
-                            this.ipEndpoint =
-                                new IPEndPoint(ipAddress, PortAdress);
-                            break;
-                        }
-                    }
-                    if (ipEndpoint == null) return;
-
-                    Socket clientSocket = new Socket(
-                        AddressFamily.InterNetwork,
-                        SocketType.Stream,
-                        ProtocolType.Tcp);
-
-                    IAsyncResult asyncConnect = clientSocket.BeginConnect(
-                      ipEndpoint, new AsyncCallback(firstConnect), clientSocket);
-
-                    Console.Write("Lacze sie.");
-                     if (writeDot(asyncConnect) == true)
-                     {
-                         Thread.Sleep(30);
-                     }
+                    f.Button.Enabled = true;
                 }
-
-                private void firstConnect(IAsyncResult ar)
-                {
-                    throw new NotImplementedException();
-                }
-            */
+        }
     }
 }

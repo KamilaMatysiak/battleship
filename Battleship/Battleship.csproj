@@ -63,6 +63,7 @@
     <Compile Include="serverForm.Designer.cs">
       <DependentUpon>serverForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Serwer.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
