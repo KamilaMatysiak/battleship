@@ -16,8 +16,61 @@ namespace Battleship
         public Form1()
         {
             InitializeComponent();
+            
             AddFields();
             AddEnemyFields();
+
+            GameStageCheck();
+        }
+
+        Game game = new Game();
+        Serwer serwer = new Serwer();
+
+        private void NextGameStage()
+        {
+            game.NextGameStage();
+            GameStageCheck();
+        }
+
+        private void ChangeGameStage(int nr)
+        {
+            game.ChangeGameStage(nr);
+            GameStageCheck();
+        }
+
+        private void GameStageCheck()
+        {
+            switch (game.gameStage)
+            {
+                case -1:
+                    ordersLabel.Text = "You are only guest";
+                    break;
+                case 0:
+                    ordersLabel.Text = "You have to choose your server and gamemode";
+                    break;
+                case 1:
+                    ordersLabel.Text = "Place: Battleship";
+                    break;
+
+                case 2:
+                    ordersLabel.Text = "Place: Destroyer";
+                    break;
+
+                case 3:
+                    ordersLabel.Text = "Place: Destroyer";
+                    break;
+
+                case 4:
+                    ordersLabel.Text = "Place: Submarine";
+                    break;
+
+                case 5:
+                    break;
+
+                default:
+                    ordersLabel.Text = "IN PROGRESS";
+                    break;
+            }
         }
 
         private void player1fields(object sender, EventArgs e)
@@ -44,33 +97,26 @@ namespace Battleship
                 game.FillShip(field, game.lastField);
                 game.CleanEmpty();
                 game.placingShip = false;
+                NextGameStage();
             }
             else
             {
                 switch (game.gameStage)
                 {
-                    case 0:
-                        ordersLabel.Text = "Place: Battleship";
-                        game.PlaceShip(field, 4, "D");
-                        game.ChangeGameStage(1);
-                        break;
-
                     case 1:
-                        ordersLabel.Text = "Place: Destroyer";
-                        game.PlaceShip(field, 3, "C");
-                        game.ChangeGameStage(2);
+                        game.PlaceShip(field, 4, "D");
                         break;
 
                     case 2:
-                        ordersLabel.Text = "Place: Destroyer";
-                        game.PlaceShip(field, 3, "B");
-                        game.ChangeGameStage(3);
+                        game.PlaceShip(field, 3, "C");
                         break;
 
                     case 3:
-                        ordersLabel.Text = "Place: Submarine";
+                        game.PlaceShip(field, 3, "B");
+                        break;
+
+                    case 4:
                         game.PlaceShip(field, 2, "A");
-                        game.ChangeGameStage(4);
                         break;
 
                     default:
@@ -84,8 +130,7 @@ namespace Battleship
 
         }
 
-        Game game = new Game();
-        public void AddFields()
+        private void AddFields()
         {
             List<List<Field>> listaField = new List<List<Field>>();
             for (int i = 0; i < 8; i++)
@@ -103,12 +148,12 @@ namespace Battleship
                     btn.Name = i.ToString() +"."+ j.ToString();
                     btn.Text = "";
                     btn.Click += new EventHandler(this.player1fields);
+                    btn.Enabled = false;
                     field.Button = btn;
                     listaField.Last().Add(field);
                     this.Controls.Add(listaField.Last().Last().Button);
                 }
             }
-
             this.game.playerFields = listaField;
 
         }
@@ -164,7 +209,7 @@ namespace Battleship
 
         }
 
-        public void AddEnemyFields()
+        private void AddEnemyFields()
         {
             List<List<Field>> listaField = new List<List<Field>>();
             for (int i = 0; i < 8; i++)
@@ -182,6 +227,7 @@ namespace Battleship
                     btn.Name = i.ToString() + "." + j.ToString();
                     btn.Text = "";
                     btn.Click += new EventHandler(this.player2fields);
+                    btn.Enabled = false;
                     field.Button = btn;
                     listaField.Last().Add(field);
                     this.Controls.Add(listaField.Last().Last().Button);
@@ -192,22 +238,23 @@ namespace Battleship
 
         private void serverBut_Click(object sender, EventArgs e)
         {
-           /* using (serverForm form = new serverForm())
+            using (serverForm form = new serverForm())
             {
                 var result = form.ShowDialog();
                 if (result == DialogResult.OK)
                 {
-                    if (form.IsPlayer)
-                    {
-                        game.gameStage = 1;
-                    }
-                    else game.gameStage = -1;
                     int i = 0;
                     if (!Int32.TryParse(form.PortServer, out i)) 
                     {
                         i = -1;
                     }
-                    game.ConnectToServer(form.IpServer, i);
+                    if (!serwer.ConnectToServer(form.IpServer, i)) return;
+                    Button click = sender as Button;
+                    click.Enabled = false;
+                    if (form.IsPlayer)
+                        ChangeGameStage(1);
+                    else
+                        ChangeGameStage(-1);
 
                 }
                 else
@@ -215,9 +262,11 @@ namespace Battleship
                     MessageBox.Show("Wystapil blad");
                     return;
                 }
-            }*/
+            }
             
         }
+
+
 
     }
 }

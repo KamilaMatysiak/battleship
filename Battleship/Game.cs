@@ -16,7 +16,7 @@ namespace Battleship
         public List<List<Field>> playerFields;
         public List<List<Field>> enemyFields;
         public bool placingShip = false;
-        public int gameStage { get; set; }
+        public int gameStage { get;private set; }
 
         public Game()
         {
@@ -26,6 +26,23 @@ namespace Battleship
         public void ChangeGameStage(int nr)
         {
             gameStage = nr;
+            GameStageCheck();
+        }
+
+        public void NextGameStage()
+        {
+            gameStage++;
+            GameStageCheck();
+        }
+
+        private void GameStageCheck()
+        {
+            if (this.gameStage>0 && this.gameStage < 5) EnableAllButtons();
+            else if (this.gameStage == 5) 
+            {
+                EnableAllEnemyButtons();
+                DisableAllButtons();
+            }
         }
 
         public void PlaceShip(Field field, int size, string ship)
@@ -117,7 +134,6 @@ namespace Battleship
                     playerFields[field.wier][i].shipType = shipStart.shipType;
                 }
             }
-            EnableAllButtons();
         }
 
         public void CleanEmpty()

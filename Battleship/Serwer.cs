@@ -11,7 +11,22 @@ namespace Battleship
 {
     class Serwer
     {
+        public Serwer()
+        {
+            receiveBuffer = new byte[8];
+            connectionError = false;
+            haveId = false;
+        }
+
+
         IPEndPoint ipEndpoint;
+        EndPoint ipFeedBack;
+        Socket clientSocket;
+        private byte[] receiveBuffer;
+        public bool connectionError;
+        public bool connectionFinished;
+        public bool haveId;
+        string Id;
 
         public void SendShot(Field f)
         {
@@ -24,9 +39,12 @@ namespace Battleship
             
         }
 
-        public void ConnectToServer(string IpAdress, int PortAdress)
+        public bool ConnectToServer(string IpAdress, int PortAdress)
         {
+            return true;
             ipEndpoint = null;
+            connectionError = false;
+            connectionFinished = false;
             foreach (IPAddress ipAddress in Dns.GetHostEntry(IpAdress).AddressList)
             {
                 if (ipAddress.AddressFamily == AddressFamily.InterNetwork)
@@ -36,21 +54,41 @@ namespace Battleship
                     break;
                 }
             }
-            if (ipEndpoint == null) return;
-
-            Socket clientSocket = new Socket(
+            if (ipEndpoint == null) return false;
+            clientSocket = new Socket(
                 AddressFamily.InterNetwork,
                 SocketType.Stream,
-                ProtocolType.Tcp);
+                ProtocolType.Udp);
 
-            IAsyncResult asyncConnect = clientSocket.BeginConnect(
-              ipEndpoint, new AsyncCallback(firstConnect), clientSocket);
+            byte[] sendBuffer = Encoding.ASCII.GetBytes("00000011");
+
+            IAsyncResult AskForID = clientSocket.BeginSendTo(sendBuffer, 0, sendBuffer.Length, SocketFlags.None, ipEndpoint, new AsyncCallback(IdAsked),clientSocket);
         }
 
-        private void firstConnect(IAsyncResult ar)
+        private void IdAsked(IAsyncResult ar)
         {
-           
+            //Socket clientSocket = (Socket)ar.AsyncState;
+            int bytessent = clientSocket.EndSendTo(ar);
+            if (!(bytessent == 8)) connectionError = true;
+            // pierwsze trzy cyfry to rodzaj prosby, czwarta to fakt czy chcesz zostac graczem czy gosciem
+
+            IAsyncResult IDReturned = clientSocket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None,ref ipFeedBack, new AsyncCallback(IdReturned), clientSocket);
         }
 
+        private void IdReturned(IAsyncResult asyncSend)
+        {
+            //Socket clientSocket = (Socket)asyncSend.AsyncState;
+            int bytesSent = clientSocket.EndReceiveFrom(asyncSend,ref ipFeedBack);
+            if (!(bytesSent == Encoding.ASCII.GetBytes("00000011").Length)) connectionError = true;
+            else
+            {
+                haveId = true;
+                connectionFinished = false;
+                Id =Encoding.ASCII.GetString(receiveBuffer).Substring(0, 3);
+
+            }
+
+            
+        }
     }
 }
