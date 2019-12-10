@@ -56,6 +56,7 @@ namespace Battleship
                 }
             }
             if (ipEndpoint == null) return false;
+            ipFeedBack = new IPEndPoint(ipEndpoint.Address,ipEndpoint.Port);
             clientSocket = new Socket(
                 AddressFamily.InterNetwork,
                 SocketType.Dgram,
