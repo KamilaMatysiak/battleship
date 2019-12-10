@@ -16,16 +16,16 @@ namespace Battleship
         public Form1()
         {
             InitializeComponent();
-            
+            game = new Game();
+            connect = new Connection(game);
             AddFields();
             AddEnemyFields();
 
             GameStageCheck();
         }
 
-        Game game = new Game();
-        Serwer serwer = new Serwer();
-
+        Game game;
+        Connection connect;
         private void NextGameStage()
         {
             game.NextGameStage();
@@ -77,7 +77,6 @@ namespace Battleship
         {
             Button click = sender as Button;
             Field field = null;
-            //click.BackColor = Color.Green;
             foreach (var list in this.game.playerFields)
             {
                 foreach (Field search in list)
@@ -92,7 +91,7 @@ namespace Battleship
 
             click.Text = field.kol + ":" + field.wier;
 
-            if(game.placingShip)
+            if (game.placingShip)
             {
                 game.FillShip(field, game.lastField);
                 game.CleanEmpty();
@@ -124,9 +123,14 @@ namespace Battleship
                         break;
                 }
             }
-                 
-       
                 game.lastField = field;
+
+            if(game.gameStage>5)
+            {
+                //connect.ReceiveShot(/*tu powinno być coś */);
+                //game.ReceiveShot();
+            }
+            
 
         }
 
@@ -175,34 +179,10 @@ namespace Battleship
                 }
             }
 
-            if (game.gameStage < 5)
-            {
+            game.DisableAllEnemyButtons();
+            connect.SendShot(field);
+            game.EnableAllEnemyButtons();
             
-            }
-            else
-            {
-                switch (game.gameStage)
-                {
-                    case 10:
-                        
-                        break;
-
-                    case 11:
-                        
-                        break;
-
-                    case 12:
-
-                        break;
-
-                    case 13:
-
-                        break;
-
-                    default:
-                        break;
-                }
-            }
 
             click.Text = field.kol + ":" + field.wier;
 
@@ -248,7 +228,7 @@ namespace Battleship
                     {
                         i = -1;
                     }
-                    if (!serwer.ConnectToServer(form.IpServer, i)) return;
+                    if (!connect.ConnectToServer(form.IpServer, i)) return;
                     Button click = sender as Button;
                     click.Enabled = false;
                     if (form.IsPlayer)

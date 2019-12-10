@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 namespace Battleship
 {
+    struct Coords
+    {
+        public int kol;
+        public int wier;
+    }
     class Field
     {
         public System.Windows.Forms.Button Button { set; get; }
@@ -23,6 +28,16 @@ namespace Battleship
             wier = wier_;
             shipType = "none";
             index = wier * 8 + kol;
+        }
+
+        public Coords GetCoords()
+        {
+            Coords coords = new Coords
+            {
+                kol = kol,
+                wier = wier
+            };
+            return coords;
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Battleship
 {
@@ -43,6 +44,51 @@ namespace Battleship
                 EnableAllEnemyButtons();
                 DisableAllButtons();
             }
+        }
+
+        public string ReceiveShot(Int16 wier, Int16 kol)
+        {
+            Field hitted = GetField(wier, kol);
+            if(hitted.shipType == "none")
+            {
+                hitted.Button.BackColor = Color.LimeGreen;
+                hitted.isHit = true;
+                return "0";
+            }
+
+            else
+            {
+                hitted.isHit = true;
+                if (SearchShip(hitted.shipType))
+                {
+                    hitted.Button.BackColor = Color.IndianRed;
+                    return "1";
+                }
+                else
+                {
+                    hitted.Button.BackColor = Color.LightGray;
+                    return "2";
+                }
+            }
+            
+            //0 to nietrafiony, 1 to trafiony, 2 to trafiony i zatopiony
+        }
+
+        private bool SearchShip(String s)
+        {
+            foreach (var list in this.playerFields)
+            {
+                foreach (Field search in list)
+                {
+                    if((search.shipType == s) && (!search.isHit))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+
         }
 
         public void PlaceShip(Field field, int size, string ship)
@@ -185,6 +231,15 @@ namespace Battleship
                 {
                     f.Button.Enabled = true;
                 }
+        }
+
+        public Field GetField(Coords coords)
+        {
+            return playerFields[coords.wier][coords.kol];
+        }
+        public Field GetField(int wier, int kol)
+        {
+            return playerFields[wier][kol];
         }
     }
 }
