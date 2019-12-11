@@ -202,7 +202,7 @@ namespace Battleship
                 haveShot = true;
                 var b = Convert.ToInt16('0');
                 char response=_game.ReceiveShot(Convert.ToInt16(receiveBuffer[5] - '0'), Convert.ToInt16(receiveBuffer[6]-'0'));
-                byte[] sendBuffer = MakeMessage("2",response.ToString() + receiveBuffer[5].ToString() + receiveBuffer[5].ToString());
+                byte[] sendBuffer = MakeMessage("2",response.ToString() + (receiveBuffer[5]-'0').ToString() + (receiveBuffer[6] - '0').ToString());
                 int sended = 0;
                 while (sendBuffer.Length != sended)
                 {
@@ -216,7 +216,8 @@ namespace Battleship
             string MId = "0" + Id; // [0,1]
             string Mtype = type.PadLeft(2, '0'); // [2,3]
             string Marg = arg.PadLeft(3, '0'); // [4,5,6]
-            return Encoding.ASCII.GetBytes(MId + Mtype + Marg);
+            string result = MId + Mtype + Marg;
+            return Encoding.ASCII.GetBytes(result);
         }
         
 

@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="J:\Desktop\BattleshipServer.c">
+    <ClCompile Include="WinSerwer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
