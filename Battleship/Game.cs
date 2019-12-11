@@ -104,7 +104,7 @@ namespace Battleship
             else if (result == '1')
                 hitted.Button.BackColor = Color.IndianRed;
             else
-                hitted.Button.BackColor = Color.LightGray;
+                hitted.Button.BackColor = Color.DarkRed;
         }
         public char ReceiveShot(Int16 wier, Int16 kol)
         {
@@ -126,7 +126,7 @@ namespace Battleship
                 }
                 else
                 {
-                    hitted.Button.BackColor = Color.LightGray;
+                    hitted.Button.BackColor = Color.DarkRed;
                     return '2';
                 }
             }
