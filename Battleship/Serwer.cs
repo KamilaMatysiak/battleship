@@ -202,7 +202,7 @@ namespace Battleship
                 haveShot = true;
                 var b = Convert.ToInt16('0');
                 char response=_game.ReceiveShot(Convert.ToInt16(receiveBuffer[5] - '0'), Convert.ToInt16(receiveBuffer[6]-'0'));
-                byte[] sendBuffer = MakeMessage("2",response.ToString() + receiveBuffer[5].ToString() + receiveBuffer[5].ToString());
+                byte[] sendBuffer = MakeMessage("2",response.ToString() + (receiveBuffer[5] - '0').ToString() + (receiveBuffer[6] - '0').ToString());
                 int sended = 0;
                 while (sendBuffer.Length != sended)
                 {
