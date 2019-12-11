@@ -16,6 +16,9 @@ namespace Battleship
         public Field lastField;
         public List<List<Field>> playerFields;
         public List<List<Field>> enemyFields;
+        public Button connect;
+        public Button startGame;
+        public Label info;
         public bool placingShip = false;
         public int gameStage { get;private set; }
 
@@ -38,22 +41,79 @@ namespace Battleship
 
         private void GameStageCheck()
         {
-            if (this.gameStage>0 && this.gameStage < 5) EnableAllButtons();
-            else if (this.gameStage == 5) 
+            if (gameStage != 0)
+                DisableButton(connect);
+            if (gameStage != 9)
+                DisableButton(startGame);
+
+            switch (gameStage)
             {
-                EnableAllEnemyButtons();
+                case -1:
+                    ChangeText(info,"You are only guest");
+                    break;
+                case 0:
+                    info.Text = "You have to choose your server and gamemode";
+                    break;
+                case 1:
+                    ChangeText(info, "Place: Battleship");
+                    break;
+
+                case 2:
+                    info.Text = "Place: Destroyer";
+                    break;
+
+                case 3:
+                    info.Text = "Place: Destroyer";
+                    break;
+
+                case 4:
+                    info.Text = "Place: Submarine";
+                    break;
+                case 5:
+                    ChangeGameStage(9);
+                    break;
+
+                case 9:
+                    EnableButton(startGame);
+                    break;
+
+                case 10:
+                    EnableAllEnemyButtons();
+                    break;
+
+                default:
+                    info.Text = "IN PROGRESS";
+                    break;
+            }
+            if (this.gameStage>0 && this.gameStage < 9) EnableAllButtons();
+            else if (this.gameStage == 9) 
+            {
                 DisableAllButtons();
             }
         }
-
-        public string ReceiveShot(Int16 wier, Int16 kol)
+        public void GameBegin()
+        {
+        }
+        public void ShotResult(Field hitted, char result)
+        {
+            hitted.isHit = true;
+            if (result == '0')
+            {
+                hitted.Button.BackColor = Color.LimeGreen;
+            }
+            else if (result == '1')
+                hitted.Button.BackColor = Color.IndianRed;
+            else
+                hitted.Button.BackColor = Color.LightGray;
+        }
+        public char ReceiveShot(Int16 wier, Int16 kol)
         {
             Field hitted = GetField(wier, kol);
             if(hitted.shipType == "none")
             {
                 hitted.Button.BackColor = Color.LimeGreen;
                 hitted.isHit = true;
-                return "0";
+                return '0';
             }
 
             else
@@ -62,12 +122,12 @@ namespace Battleship
                 if (SearchShip(hitted.shipType))
                 {
                     hitted.Button.BackColor = Color.IndianRed;
-                    return "1";
+                    return '1';
                 }
                 else
                 {
                     hitted.Button.BackColor = Color.LightGray;
-                    return "2";
+                    return '2';
                 }
             }
             
@@ -202,7 +262,7 @@ namespace Battleship
             foreach(var list in playerFields)
                 foreach (Field f in list)
                 {
-                    f.Button.Enabled = false;
+                    DisableButton(f.Button);
                 }
         }
 
@@ -211,7 +271,7 @@ namespace Battleship
             foreach (var list in enemyFields)
                 foreach (Field f in list)
                 {
-                    f.Button.Enabled = false;
+                    DisableButton(f.Button);
                 }
         }
 
@@ -220,7 +280,7 @@ namespace Battleship
             foreach (var list in playerFields)
                 foreach (Field f in list)
                 {
-                    f.Button.Enabled = true;
+                    EnableButton(f.Button);
                 }
         }
 
@@ -229,7 +289,7 @@ namespace Battleship
             foreach (var list in enemyFields)
                 foreach (Field f in list)
                 {
-                    f.Button.Enabled = true;
+                    EnableButton(f.Button);
                 }
         }
 
@@ -240,6 +300,40 @@ namespace Battleship
         public Field GetField(int wier, int kol)
         {
             return playerFields[wier][kol];
+        }
+        public Field GetEnemyField(Coords coords)
+        {
+            return enemyFields[coords.wier][coords.kol];
+        }
+        public Field GetEnemyField(int wier, int kol)
+        {
+            return enemyFields[wier][kol];
+        }
+
+        public void DisableButton(Button b)
+        {
+            //Check if invoke requied if so return - as i will be recalled in correct thread
+            if (ControlInvokeRequired(b, () => DisableButton(b))) return;
+            b.Enabled = false;
+        }
+        public void EnableButton(Button b)
+        {
+            //Check if invoke requied if so return - as i will be recalled in correct thread
+            if (ControlInvokeRequired(b, () => EnableButton(b))) return;
+            b.Enabled = true;
+        }
+        public void ChangeText(Control b, string text)
+        {
+            //Check if invoke requied if so return - as i will be recalled in correct thread
+            if (ControlInvokeRequired(b, () => ChangeText(b,text))) return;
+            b.Text = text;
+        }
+        public bool ControlInvokeRequired(Control c, Action a)
+        {
+            if (c.InvokeRequired) c.Invoke(new MethodInvoker(delegate { a(); }));
+            else return false;
+
+            return true;
         }
     }
 }

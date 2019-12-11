@@ -65,6 +65,7 @@
             this.label33 = new System.Windows.Forms.Label();
             this.label34 = new System.Windows.Forms.Label();
             this.ordersLabel = new System.Windows.Forms.Label();
+            this.startGame = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -521,11 +522,22 @@
             this.ordersLabel.Size = new System.Drawing.Size(0, 17);
             this.ordersLabel.TabIndex = 100;
             // 
+            // startGame
+            // 
+            this.startGame.Location = new System.Drawing.Point(1029, 560);
+            this.startGame.Name = "startGame";
+            this.startGame.Size = new System.Drawing.Size(143, 58);
+            this.startGame.TabIndex = 101;
+            this.startGame.Text = "Start Game";
+            this.startGame.UseVisualStyleBackColor = true;
+            this.startGame.Click += new System.EventHandler(this.startGame_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1184, 630);
+            this.Controls.Add(this.startGame);
             this.Controls.Add(this.ordersLabel);
             this.Controls.Add(this.label34);
             this.Controls.Add(this.label33);
@@ -607,6 +619,7 @@
         private System.Windows.Forms.Label label33;
         private System.Windows.Forms.Label label34;
         private System.Windows.Forms.Label ordersLabel;
+        private System.Windows.Forms.Button startGame;
     }
 }
 

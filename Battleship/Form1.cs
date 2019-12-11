@@ -5,7 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 //hello there
 namespace Battleship
@@ -20,7 +20,7 @@ namespace Battleship
             connect = new Connection(game);
             AddFields();
             AddEnemyFields();
-
+            AddOther();
             GameStageCheck();
         }
 
@@ -29,48 +29,16 @@ namespace Battleship
         private void NextGameStage()
         {
             game.NextGameStage();
-            GameStageCheck();
         }
 
         private void ChangeGameStage(int nr)
         {
             game.ChangeGameStage(nr);
-            GameStageCheck();
         }
 
         private void GameStageCheck()
         {
-            switch (game.gameStage)
-            {
-                case -1:
-                    ordersLabel.Text = "You are only guest";
-                    break;
-                case 0:
-                    ordersLabel.Text = "You have to choose your server and gamemode";
-                    break;
-                case 1:
-                    ordersLabel.Text = "Place: Battleship";
-                    break;
-
-                case 2:
-                    ordersLabel.Text = "Place: Destroyer";
-                    break;
-
-                case 3:
-                    ordersLabel.Text = "Place: Destroyer";
-                    break;
-
-                case 4:
-                    ordersLabel.Text = "Place: Submarine";
-                    break;
-
-                case 5:
-                    break;
-
-                default:
-                    ordersLabel.Text = "IN PROGRESS";
-                    break;
-            }
+            game.ChangeGameStage(game.gameStage);
         }
 
         private void player1fields(object sender, EventArgs e)
@@ -89,7 +57,7 @@ namespace Battleship
                 }
             }
 
-            click.Text = field.kol + ":" + field.wier;
+            click.Text = field.wier + ":" + field.kol;
 
             if (game.placingShip)
             {
@@ -133,7 +101,12 @@ namespace Battleship
             
 
         }
-
+        private void AddOther()
+        {
+            game.connect = serverBut;
+            game.info = ordersLabel;
+            game.startGame = startGame;
+        }
         private void AddFields()
         {
             List<List<Field>> listaField = new List<List<Field>>();
@@ -181,10 +154,8 @@ namespace Battleship
 
             game.DisableAllEnemyButtons();
             connect.SendShot(field);
-            game.EnableAllEnemyButtons();
-            
 
-            click.Text = field.kol + ":" + field.wier;
+            click.Text = field.wier + ":" + field.kol;
 
 
         }
@@ -228,13 +199,11 @@ namespace Battleship
                     {
                         i = -1;
                     }
-                    if (!connect.ConnectToServer(form.IpServer, i)) return;
-                    Button click = sender as Button;
-                    click.Enabled = false;
-                    if (form.IsPlayer)
-                        ChangeGameStage(1);
-                    else
-                        ChangeGameStage(-1);
+                    if (!connect.ConnectToServer(form.IpServer, i, form.IsPlayer))
+                    {
+                        ordersLabel.Text = "Nie polaczyles sie z serwerem, sprobuj ponownie.";
+                        return;
+                    }
 
                 }
                 else
@@ -246,7 +215,9 @@ namespace Battleship
             
         }
 
-
-
+        private void startGame_Click(object sender, EventArgs e)
+        {
+            connect.GameBegin();
+        }
     }
 }
