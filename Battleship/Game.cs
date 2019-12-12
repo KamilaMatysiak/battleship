@@ -289,7 +289,8 @@ namespace Battleship
             foreach (var list in enemyFields)
                 foreach (Field f in list)
                 {
-                    EnableButton(f.Button);
+                    if (!f.isHit)
+                        EnableButton(f.Button);
                 }
         }
 
