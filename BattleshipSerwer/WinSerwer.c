@@ -231,9 +231,9 @@ int main(int argc, char **argv)
 					sendbuf[2] = '2';
 					sendbuf[3] = '2';
 					sendbuf[4] = '2';
-					while (r < 8)
+					while (r < bytes)
 					{
-						sent = sendto(players[i].playersocket, sendbuf + r, 8 - r, 0,
+						sent = sendto(players[i].playersocket, sendbuf + r, bytes - r, 0,
 							(struct sockaddr*) &players[i].endpoint, addrlen);
 						if (sent == 0 || sent == -1)
 						{
