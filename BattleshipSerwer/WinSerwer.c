@@ -6,7 +6,8 @@
 
 
 #define buffSize 10240
-#define smallSize 8
+#define bytes 8
+
 struct Players
 {
 	int id;
@@ -31,23 +32,23 @@ void sendBig(struct Players player)
 	int sentfull;
 	clearBuf(net_buf);
 	if (player.playerType == 0)
-		fp = fopen("niceimage.png", "rb");
+		fp = fopen("niceimage2.jpg", "rb");
 	else
 		fp = fopen("Explosion.jpg", "rb");
 	if (fp == NULL)
-		printf("\nFile open failed!\n");
+		printf("\nPlik nie zosta³ otworzony pomyœlnie!\n");
 	else
-		printf("\nFile Successfully opened!\n");
+		printf("\nPlik zosta³ otworzony pomyœlnie!\n");
 	fseek(fp, 0, SEEK_END);
 	size = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
-	printf("Total Picture size: %i\n", size);
+	printf("Maksymalny rozmiar zdjêcia: %i\n", size);
 
 
-	printf("Sending Picture Size\n");
+	printf("Wysy³anie rozmiaru zdjêcia\n");
 	sent = sendto(player.playersocket, (void *)&size, sizeof(int), 0, (struct sockaddr*) &player.endpoint, sizeof(struct sockaddr_in));
-	printf("Packet Number: %i\n", packet);
-	printf("Packet Size read: %i\n", sent);		
+	printf("Numer pakietu: %i\n", packet);
+	printf("Rozmiar pakietu: %i\n", sent);		
 	printf(" \n");
 	printf(" \n");
 
@@ -68,9 +69,9 @@ void sendBig(struct Players player)
 			sentfull += sent;
 		} while (sent < 0);
 		packet++;
-		printf("Packet Number: %i\n", packet);
-		printf("Packet Size read: %i\n", read);
-		printf("Packet Size Sent: %i\n", sentfull);
+		printf("Numer Pakietu: %i\n", packet);
+		printf("Rozmiar Pakietu: %i\n", read);
+		printf("Ile Wys³ano: %i\n", sentfull);
 		printf(" \n");
 		printf(" \n");
 		//Zero out our send buffer
@@ -78,6 +79,7 @@ void sendBig(struct Players player)
 	}
 	return;
 }
+
 void message(char* tab)
 {
 	for (int i = 0; i < 7; i++)
@@ -87,10 +89,9 @@ void message(char* tab)
 
 int main(int argc, char **argv)
 {
-	WSADATA wsaData; // je´sli to nie zadzia³a
-	//WSAData wsaData; // uÿzyj tego
+	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0) {
-		fprintf(stderr, "WSAStartup failed.\n");
+		fprintf(stderr, "WSAStartup nie powiodl sie.\n");
 		exit(1);
 	}
 	char recbuf[8];
@@ -101,12 +102,11 @@ int main(int argc, char **argv)
 	int owner = 0, recipient = 0;
 	int ready = 0;
 	struct sockaddr_in myaddr, remoteaddr;
-	int socketAmount;
 	SOCKET sdsocket;
 	int addrlen;
 	int r, sent;
 	unsigned int port = 8888;
-	fd_set desset;
+
 	if ((sdsocket = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
 	{
 		printf("socket() nie powiodl sie\n");
@@ -125,20 +125,14 @@ int main(int argc, char **argv)
 	}
 	addrlen = sizeof(struct sockaddr_in);
 
-
-	// turururu
-	socketAmount = sdsocket + 1;
-	FD_ZERO(&desset);
-	FD_SET(sdsocket, &desset);
-
 	printf("Serwer wystartowal\n");
 	while (1)
 	{
-		memset(recbuf, 0, 8);
+		memset(recbuf, 0, bytes);
 		r = 0;
 		printf("\n\nSerwer oczekuje\n");
-		while (r < 7)
-			r += recvfrom(sdsocket, recbuf + r, 8 - r, 0, (struct sockaddr*) &remoteaddr, &addrlen);
+		while (r < bytes-1)
+			r += recvfrom(sdsocket, recbuf + r, bytes - r, 0, (struct sockaddr*) &remoteaddr, &addrlen);
 		recbuf[7] = '\0';
 		printf("\n\nBitow odebranych %d. Wiadomosc od %s: %s\n",
 			r,
@@ -153,19 +147,19 @@ int main(int argc, char **argv)
 				players[plays].playersocket = sdsocket;
 				players[plays].endpoint = remoteaddr;
 				players[plays].playerType = plays;
-				memset(sendbuf, 0, 8);
+				memset(sendbuf, 0, bytes);
 				message(sendbuf);
 				sendbuf[2] = plays + '0';
-				sendto(sdsocket, sendbuf, 8, 0, (struct sockaddr*) &players[plays].endpoint, addrlen);
+				sendto(sdsocket, sendbuf, bytes, 0, (struct sockaddr*) &players[plays].endpoint, addrlen);
 				printf("Id wyslane %s\n", sendbuf);
 				plays++;
 			}
 			else
 			{
-				memset(sendbuf, 0, 8);
+				memset(sendbuf, 0, bytes));
 				message(sendbuf);
 				sendbuf[0] = '1';
-				sendto(sdsocket, sendbuf, 8, 0, (struct sockaddr*) &remoteaddr, addrlen);
+				sendto(sdsocket, sendbuf, bytes, 0, (struct sockaddr*) &remoteaddr, addrlen);
 				printf("Limit graczy osiagniety\n");
 			}
 		}
@@ -177,19 +171,19 @@ int main(int argc, char **argv)
 				players[watches].playersocket = sdsocket;
 				players[watches].endpoint = remoteaddr;
 				players[watches].playerType = 2;
-				memset(sendbuf, 0, 8);
+				memset(sendbuf, 0, bytes);
 				message(sendbuf);
 				sendbuf[2] = watches + '0';
-				sendto(sdsocket, sendbuf, 8, 0, (struct sockaddr*) &players[watches].endpoint, addrlen);
+				sendto(sdsocket, sendbuf, bytes, 0, (struct sockaddr*) &players[watches].endpoint, addrlen);
 				printf("Id wyslane %s\n", sendbuf);
 				watches++;
 			}
 			else
 			{
-				memset(sendbuf, 0, 8);
+				memset(sendbuf, 0, bytes);
 				message(sendbuf);
 				sendbuf[0] = '1';
-				sendto(sdsocket, sendbuf, 8, 0, (struct sockaddr*) &remoteaddr, addrlen);
+				sendto(sdsocket, sendbuf, bytes, 0, (struct sockaddr*) &remoteaddr, addrlen);
 				printf("Limit ogladajacych osiagniety\n");
 			}
 		}
@@ -201,9 +195,9 @@ int main(int argc, char **argv)
 				if (plays == 1 && i == 1) continue;
 				r = 0;
 
-				while (r < 7)
+				while (r < bytes)
 				{
-					sent = sendto(players[i].playersocket, recbuf + r, 8 - r, 0,
+					sent = sendto(players[i].playersocket, recbuf + r, bytes - r, 0,
 						(struct sockaddr*) &players[i].endpoint, addrlen);
 					if (sent == 0 || sent == -1)
 					{
@@ -260,10 +254,10 @@ int main(int argc, char **argv)
 			if (plays != 2)
 			{
 				printf("Oczekujemy nastepnego gracza / bledna wiadomosc \n");
-				memset(sendbuf, 0, 8);
+				memset(sendbuf, 0, bytes);
 				message(sendbuf);
 				sendbuf[0] = '1';
-				sent = sendto(sdsocket, sendbuf, 8, 0, (struct sockaddr*) &remoteaddr, addrlen);
+				sent = sendto(sdsocket, sendbuf, bytes, 0, (struct sockaddr*) &remoteaddr, addrlen);
 				if (sent == 0 || sent == -1)
 				{
 					printf("Error napotkal problem %d\n", r);
@@ -280,7 +274,7 @@ int main(int argc, char **argv)
 				if (recbuf[3] == '1')
 				{
 					printf("Strzal otrzymany\n");
-					memset(sendbuf, 0, 8);
+					memset(sendbuf, 0, bytes);
 					message(sendbuf);
 					sendbuf[1] = recipient + '0';
 					sendbuf[2] = owner + '0';
@@ -289,10 +283,10 @@ int main(int argc, char **argv)
 					sendbuf[6] = recbuf[6];
 					printf("Wiadomosc strzal utworzona %s\n", sendbuf);
 					r = 0;
-					while (r < 7)
+					while (r < bytes)
 					{
 
-						sent = sendto(players[recipient].playersocket, sendbuf + r, 8 - r, 0,
+						sent = sendto(players[recipient].playersocket, sendbuf + r, bytes - r, 0,
 							(struct sockaddr*) &players[recipient].endpoint, addrlen);
 						if (sent == 0 || sent == -1)
 						{
@@ -321,9 +315,9 @@ int main(int argc, char **argv)
 						sendbuf[6] = recbuf[6];
 						printf("Wiadomosc wynik utworzona %s\n", sendbuf);
 						r = 0;
-						while (r < 8)
+						while (r < bytes)
 						{
-							sent= sendto(players[i].playersocket, sendbuf + r, 8 - r, 0,
+							sent= sendto(players[i].playersocket, sendbuf + r, bytes - r, 0,
 							(struct sockaddr*) &players[i].endpoint, addrlen);
 							if (sent == 0 || sent == -1)
 							{
@@ -339,10 +333,10 @@ int main(int argc, char **argv)
 				}
 				else
 				{
-					memset(sendbuf, 0, 8);
+					memset(sendbuf, 0, bytes);
 					message(sendbuf);
 					sendbuf[0] = '1';
-					sent = sendto(sdsocket, sendbuf, 8, 0, (struct sockaddr*) &remoteaddr, addrlen);
+					sent = sendto(sdsocket, sendbuf, bytes, 0, (struct sockaddr*) &remoteaddr, addrlen);
 					if (sent == 0 || sent == -1)
 					{
 						printf("Error napotkal problem %d\n", r);
@@ -356,10 +350,10 @@ int main(int argc, char **argv)
 
 			else
 			{
-				memset(sendbuf, 0, 8);
+				memset(sendbuf, 0, bytes);
 				message(sendbuf);
 				sendbuf[0] = '1';
-				sent = sendto(sdsocket, sendbuf, 8, 0, (struct sockaddr*) &remoteaddr, addrlen);
+				sent = sendto(sdsocket, sendbuf, bytes, 0, (struct sockaddr*) &remoteaddr, addrlen);
 				if (sent == 0 || sent == -1)
 				{
 					printf("Error napotkal problem %d\n", r);

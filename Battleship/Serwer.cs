@@ -7,7 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-
+using System.Windows.Forms;
 
 namespace Battleship
 {
@@ -63,16 +63,23 @@ namespace Battleship
         //get answer jezeli cheatujesz
         public void GetAnswer()
         {
-            receiveBuffer = new byte[8];
-            int received = 0;
-            while (received < 7)
+            try
             {
-                received += clientSocket.ReceiveFrom(receiveBuffer, 0 + received, receiveBuffer.Length - received, SocketFlags.None, ref ipFeedBack);
+                receiveBuffer = new byte[8];
+                int received = 0;
+                while (received < 7)
+                {
+                    received += clientSocket.ReceiveFrom(receiveBuffer, 0 + received, receiveBuffer.Length - received, SocketFlags.None, ref ipFeedBack);
+                }
+                string Message = ReadMessage(receiveBuffer, received);
+                if (connectionError)
+                {
+                    return;
+                }
             }
-            string Message = ReadMessage(receiveBuffer, received);
-            if (connectionError)
+            catch
             {
-                return;
+                MessageBox.Show("Koniec gry :)");
             }
         }
 
