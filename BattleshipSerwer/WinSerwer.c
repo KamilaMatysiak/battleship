@@ -156,7 +156,7 @@ int main(int argc, char **argv)
 			}
 			else
 			{
-				memset(sendbuf, 0, bytes));
+				memset(sendbuf, 0, bytes);
 				message(sendbuf);
 				sendbuf[0] = '1';
 				sendto(sdsocket, sendbuf, bytes, 0, (struct sockaddr*) &remoteaddr, addrlen);

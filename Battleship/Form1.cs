@@ -218,6 +218,7 @@ namespace Battleship
 
         private void startGame_Click(object sender, EventArgs e)
         {
+            startGame.Enabled = false;
             connect.GameBegin();
         }
 

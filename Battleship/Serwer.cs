@@ -41,12 +41,12 @@ namespace Battleship
             }
             GetAnswer(f);
         }
-        // czy strzal sie udal
+        // czy nasz strzal trafił/zatopił
         public void GetAnswer(Field f)
         {
             receiveBuffer = new byte[8];
             int received = 0;
-            while (received < 7)
+            while (received < 8)
             {
                 received += clientSocket.ReceiveFrom(receiveBuffer, 0 + received, receiveBuffer.Length - received, SocketFlags.None, ref ipFeedBack);
             }
@@ -67,7 +67,7 @@ namespace Battleship
             {
                 receiveBuffer = new byte[8];
                 int received = 0;
-                while (received < 7)
+                while (received < 8)
                 {
                     received += clientSocket.ReceiveFrom(receiveBuffer, 0 + received, receiveBuffer.Length - received, SocketFlags.None, ref ipFeedBack);
                 }
@@ -83,7 +83,7 @@ namespace Battleship
             }
         }
 
-        //Funkcja ktora czeka za asynchronicznie czeka za strzalem
+        //Funkcja ktora asynchronicznie czeka za strzalem
         public void startReceiving()
         {
             connectionError = false;
@@ -319,7 +319,7 @@ namespace Battleship
                 return message;
             }
             message = Encoding.ASCII.GetString(receiveBuffer);
-            if (message[0] == '1')
+            if (message[0] == '1') //0 bajt to bajt sprawdzenia czy wystapil blad
             {
                 connectionError = true;
                 _game.ChangeGameStage(0);

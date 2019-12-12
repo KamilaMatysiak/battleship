@@ -111,9 +111,7 @@ namespace Battleship
                 DisableAllButtons();
             }
         }
-        public void GameBegin()
-        {
-        }
+
         public void SetExplosions()
         {
             foreach (var list in playerFields)
@@ -129,6 +127,7 @@ namespace Battleship
                         f.Button.Image = exp;
                 }
         }
+
         public void ShotResult(Field hitted, char result)
         {
             hitted.isHit = true;
@@ -141,6 +140,7 @@ namespace Battleship
             else
                 hitted.Button.BackColor = Color.DarkRed;
         }
+
         public char ReceiveShot(Int16 wier, Int16 kol)
         {
             Field hitted = GetField(wier, kol);
@@ -283,6 +283,7 @@ namespace Battleship
                 }
             }
         }
+
         public void CleanEverything()
         {
             foreach (var list in playerFields)
@@ -300,6 +301,7 @@ namespace Battleship
                     f.isHit = false;
                 }
         }
+
         public void CleanEmpty()
         {
             foreach (var list in playerFields)
@@ -356,14 +358,17 @@ namespace Battleship
         {
             return playerFields[coords.wier][coords.kol];
         }
+
         public Field GetField(int wier, int kol)
         {
             return playerFields[wier][kol];
         }
+
         public Field GetEnemyField(Coords coords)
         {
             return enemyFields[coords.wier][coords.kol];
         }
+
         public Field GetEnemyField(int wier, int kol)
         {
             return enemyFields[wier][kol];
@@ -375,18 +380,21 @@ namespace Battleship
             if (ControlInvokeRequired(b, () => DisableButton(b))) return;
             b.Enabled = false;
         }
+
         public void EnableButton(Button b)
         {
             //Check if invoke requied if so return - as i will be recalled in correct thread
             if (ControlInvokeRequired(b, () => EnableButton(b))) return;
             b.Enabled = true;
         }
+
         public void ChangeText(Control b, string text)
         {
             //Check if invoke requied if so return - as i will be recalled in correct thread
             if (ControlInvokeRequired(b, () => ChangeText(b,text))) return;
             b.Text = text;
         }
+
         public bool ControlInvokeRequired(Control c, Action a)
         {
             if (c.InvokeRequired) c.Invoke(new MethodInvoker(delegate { a(); }));
