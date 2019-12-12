@@ -223,7 +223,8 @@ namespace Battleship
 
         private void KoniecGry_Click(object sender, EventArgs e)
         {
-            game.ChangeGameStage(20);
+
+            KoniecGry.Enabled = false;
             connect.sendGameEnd();
         }
     }

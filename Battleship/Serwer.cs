@@ -52,7 +52,7 @@ namespace Battleship
                 received += clientSocket.ReceiveFrom(receiveBuffer, 0 + received, receiveBuffer.Length - received, SocketFlags.None, ref ipFeedBack);
             }
             string Message = Encoding.ASCII.GetString(receiveBuffer);
-            if (Message == "0099900")
+            if (Message.Substring(2,3) == "999")
             {
                 _game.ChangeGameStage(20);
                 receiveBig();
@@ -63,13 +63,33 @@ namespace Battleship
             _game.ChangeGameStage(11);
             startReceiving();
         }
+        public void GetAnswer()
+        {
+            receiveBuffer = new byte[8];
+            int received = 0;
+            while (received < 7)
+            {
+                received += clientSocket.ReceiveFrom(receiveBuffer, 0 + received, receiveBuffer.Length - received, SocketFlags.None, ref ipFeedBack);
+            }
+            string Message = Encoding.ASCII.GetString(receiveBuffer);
+            if (Message.Substring(2, 3) == "999")
+            {
+                _game.ChangeGameStage(20);
+                receiveBig();
+            }
+        }
         public void receiveBig()
         {
+ 
             string namefile = "GotExplosion.jpg";
             byte[] net_buf = new byte[10240];
+            byte[] size_buf = new byte[sizeof(Int32)];
             int len = net_buf.Length;
             int received;
             int received_all = 0;
+            received = clientSocket.ReceiveFrom(size_buf, 0, sizeof(Int32), SocketFlags.None, ref ipFeedBack);
+            int size = BitConverter.ToInt32(size_buf, 0);
+            _game.ChangeText(_game.info, size.ToString());
             if (File.Exists(namefile))
                 File.Delete(namefile);
             FileStream fs = File.Create(namefile);
@@ -81,7 +101,8 @@ namespace Battleship
                 received_all += received;
                 if (received == 0 || received == -1)
                     break;
-                fs.Write(net_buf, 0, 64);
+                fs.Write(net_buf, 0, received);
+                if (received_all == size) break;
                 // process 
             }
             _game.ChangeText(_game.info, received_all.ToString());
@@ -211,7 +232,6 @@ namespace Battleship
         }
         public void sendGameEnd()
         {
-            _game.ChangeGameStage(20);
             byte[] sendBuffer;
             sendBuffer = Encoding.ASCII.GetBytes("0099900");
             int sended = 0;
@@ -219,8 +239,7 @@ namespace Battleship
             {
                 sended += clientSocket.SendTo(sendBuffer, sended + 0, sendBuffer.Length - sended, SocketFlags.None, ipEndpoint);
             }
-            _game.ChangeText(_game.info, "Dostawanie");
-            receiveBig();
+            GetAnswer();
         }
         private void shotReceived(IAsyncResult asyncSend)
         {

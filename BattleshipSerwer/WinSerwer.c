@@ -20,29 +20,6 @@ void clearBuf(char* b)
 	for (i = 0; i < buffSize; i++)
 		b[i] = '\0';
 }
-int sendFile(FILE* fp, char* buf, int s)
-{
-	int i, len;
-	if (fp == NULL) {
-		strcpy(buf, "File Not Found!");
-		len = strlen("File Not Found!");
-		buf[len] = EOF;
-		return 1;
-	}
-
-	char ch;
-	for (i = 0; i < s; i++) {
-		ch = fgetc(fp);
-		buf[i] = ch;
-		if (ch == EOF)
-		{
-			printf("\nFile end reached!\n");
-			return 1;
-		}
-			
-	}
-	return 0;
-}
 void sendBig(struct Players player)
 {
 	char net_buf[buffSize];
@@ -54,16 +31,28 @@ void sendBig(struct Players player)
 	int sentfull;
 	clearBuf(net_buf);
 
-	fp = fopen("Explosion.jpg", "rb");
-	fseek(fp, 0, SEEK_END);
-	size = ftell(fp);
-	fseek(fp, 0, SEEK_SET);
-	printf("Total Picture size: %i\n", size);
+	fp = fopen("niceimage.png", "rb");
 	if (fp == NULL)
 		printf("\nFile open failed!\n");
 	else
 		printf("\nFile Successfully opened!\n");
+	fseek(fp, 0, SEEK_END);
+	size = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+	printf("Total Picture size: %i\n", size);
 
+
+	printf("Sending Picture Size\n");
+	sent = sendto(player.playersocket, (void *)&size, sizeof(int), 0, (struct sockaddr*) &player.endpoint, sizeof(struct sockaddr_in));
+	printf("Packet Number: %i\n", packet);
+	printf("Packet Size read: %i\n", sent);		
+	printf(" \n");
+	printf(" \n");
+
+	if (sent < 0)
+	{
+		printf("Rozmiar nie wyslany");
+	}
 	while (!feof(fp)) 
 	{
 		read = fread(net_buf, 1, sizeof(net_buf), fp);
@@ -76,16 +65,12 @@ void sendBig(struct Players player)
 			sent = sendto(player.playersocket, net_buf, read,0, (struct sockaddr*) &player.endpoint, sizeof(struct sockaddr_in));
 			sentfull += sent;
 		} while (sent < 0);
-
+		packet++;
 		printf("Packet Number: %i\n", packet);
 		printf("Packet Size read: %i\n", read);
 		printf("Packet Size Sent: %i\n", sentfull);
 		printf(" \n");
 		printf(" \n");
-
-
-		packet++;
-
 		//Zero out our send buffer
 		memset(net_buf, 0, buffSize);
 	}
