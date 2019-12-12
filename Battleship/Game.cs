@@ -20,9 +20,10 @@ namespace Battleship
         public Button startGame;
         public Label info;
         public Button endGame;
-        public int health { get;private set; }
+        public Image exp;
+        public int health { get; private set; }
         public bool placingShip = false;
-        public int gameStage { get;private set; }
+        public int gameStage { get; private set; }
 
         public Game()
         {
@@ -32,7 +33,6 @@ namespace Battleship
 
         public void ChangeGameStage(int nr)
         {
-            if (gameStage == 20) return;
             gameStage = nr;
             GameStageCheck();
         }
@@ -47,15 +47,18 @@ namespace Battleship
         {
             if (gameStage != 0)
                 DisableButton(connect);
+            else
+                EnableButton(connect);
             if (gameStage != 9)
                 DisableButton(startGame);
 
             switch (gameStage)
             {
                 case -1:
-                    ChangeText(info,"You are only guest");
+                    ChangeText(info, "You are only guest");
                     break;
                 case 0:
+                    CleanEverything();
                     info.Text = "You have to choose your server and gamemode";
                     break;
                 case 1:
@@ -84,22 +87,47 @@ namespace Battleship
 
                 case 10:
                     EnableAllEnemyButtons();
+                    ChangeText(info, "Strzelaj!");
+                    break;
+                case 11:
+                    ChangeText(info, "Czekasz za strzalem przeciwnika");
                     break;
                 case 20:
                     ChangeText(info, "Koniec gry!");
+                    DisableButton(startGame);
+                    DisableAllButtons();
+                    DisableAllEnemyButtons();
+                    break;
+                case 21:
+                    SetExplosions();
                     break;
                 default:
                     info.Text = "IN PROGRESS";
                     break;
             }
-            if (this.gameStage>0 && this.gameStage < 9) EnableAllButtons();
-            else if (this.gameStage == 9) 
+            if (this.gameStage > 0 && this.gameStage < 9) EnableAllButtons();
+            else if (this.gameStage == 9)
             {
                 DisableAllButtons();
             }
         }
         public void GameBegin()
         {
+        }
+        public void SetExplosions()
+        {
+            foreach (var list in playerFields)
+                foreach (Field f in list)
+                {
+                    if (f.isHit && f.shipType != "none")
+                        f.Button.Image = exp;
+                }
+            foreach (var list in enemyFields)
+                foreach (Field f in list)
+                {
+                    if (f.isHit && f.shipType != "none")
+                        f.Button.Image = exp;
+                }
         }
         public void ShotResult(Field hitted, char result)
         {
@@ -255,7 +283,23 @@ namespace Battleship
                 }
             }
         }
-
+        public void CleanEverything()
+        {
+            foreach (var list in playerFields)
+                foreach (Field f in list)
+                {
+                    f.shipType = "none";
+                    f.Button.BackColor = Color.White;
+                    f.isHit = false;
+                }
+            foreach (var list in enemyFields)
+                foreach (Field f in list)
+                {
+                    f.shipType = "none";
+                    f.Button.BackColor = Color.White;
+                    f.isHit = false;
+                }
+        }
         public void CleanEmpty()
         {
             foreach (var list in playerFields)
@@ -303,7 +347,8 @@ namespace Battleship
             foreach (var list in enemyFields)
                 foreach (Field f in list)
                 {
-                    EnableButton(f.Button);
+                    if (!f.isHit)
+                        EnableButton(f.Button);
                 }
         }
 

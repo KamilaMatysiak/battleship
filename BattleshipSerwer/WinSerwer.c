@@ -30,8 +30,10 @@ void sendBig(struct Players player)
 	int sent;
 	int sentfull;
 	clearBuf(net_buf);
-
-	fp = fopen("niceimage.png", "rb");
+	if (player.playerType == 0)
+		fp = fopen("niceimage.png", "rb");
+	else
+		fp = fopen("Explosion.jpg", "rb");
 	if (fp == NULL)
 		printf("\nFile open failed!\n");
 	else
@@ -243,6 +245,16 @@ int main(int argc, char **argv)
 			if (plays != 2)
 			{
 				printf("Oczekujemy nastepnego gracza / bledna wiadomosc \n");
+				memset(sendbuf, 0, 8);
+				message(sendbuf);
+				sendbuf[0] = '1';
+				sent = sendto(sdsocket, sendbuf, 8, 0, (struct sockaddr*) &remoteaddr, addrlen);
+				if (sent == 0 || sent == -1)
+				{
+					printf("Error napotkal problem %d\n", r);
+					if (sent == -1)
+						perror(send);
+				}
 				continue;
 			}
 			if (recbuf[0] == '0')
@@ -313,6 +325,7 @@ int main(int argc, char **argv)
 				else
 				{
 					memset(sendbuf, 0, 8);
+					message(sendbuf);
 					sendbuf[0] = '1';
 					sent = sendto(sdsocket, sendbuf, 8, 0, (struct sockaddr*) &remoteaddr, addrlen);
 					if (sent == 0 || sent == -1)
@@ -320,7 +333,6 @@ int main(int argc, char **argv)
 						printf("Error napotkal problem %d\n", r);
 						if (sent == -1)
 							perror(send);
-						break;
 					}
 					printf("Zly format \n");
 				}
@@ -330,6 +342,7 @@ int main(int argc, char **argv)
 			else
 			{
 				memset(sendbuf, 0, 8);
+				message(sendbuf);
 				sendbuf[0] = '1';
 				sent = sendto(sdsocket, sendbuf, 8, 0, (struct sockaddr*) &remoteaddr, addrlen);
 				if (sent == 0 || sent == -1)
@@ -337,7 +350,6 @@ int main(int argc, char **argv)
 					printf("Error napotkal problem %d\n", r);
 					if (sent == -1)
 						perror(send);
-					break;
 				}
 				printf("Zly format \n");
 			}
