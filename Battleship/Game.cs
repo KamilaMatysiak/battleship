@@ -19,16 +19,20 @@ namespace Battleship
         public Button connect;
         public Button startGame;
         public Label info;
+        public Button endGame;
+        public int health { get;private set; }
         public bool placingShip = false;
         public int gameStage { get;private set; }
 
         public Game()
         {
             gameStage = 0;
+            health = 12;
         }
 
         public void ChangeGameStage(int nr)
         {
+            if (gameStage == 20) return;
             gameStage = nr;
             GameStageCheck();
         }
@@ -56,6 +60,7 @@ namespace Battleship
                     break;
                 case 1:
                     ChangeText(info, "Place: Battleship");
+                    EnableButton(endGame);
                     break;
 
                 case 2:
@@ -80,7 +85,9 @@ namespace Battleship
                 case 10:
                     EnableAllEnemyButtons();
                     break;
-
+                case 20:
+                    ChangeText(info, "Koniec gry!");
+                    break;
                 default:
                     info.Text = "IN PROGRESS";
                     break;
@@ -119,6 +126,13 @@ namespace Battleship
             else
             {
                 hitted.isHit = true;
+                health--;
+                if (health == 0)
+                {
+                    ChangeGameStage(20);
+                    hitted.Button.BackColor = Color.DarkRed;
+                    return '9';
+                }
                 if (SearchShip(hitted.shipType))
                 {
                     hitted.Button.BackColor = Color.IndianRed;

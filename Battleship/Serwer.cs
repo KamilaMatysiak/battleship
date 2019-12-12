@@ -6,6 +6,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
+
 
 namespace Battleship
 {
@@ -50,13 +52,41 @@ namespace Battleship
                 received += clientSocket.ReceiveFrom(receiveBuffer, 0 + received, receiveBuffer.Length - received, SocketFlags.None, ref ipFeedBack);
             }
             string Message = Encoding.ASCII.GetString(receiveBuffer);
+            if (Message == "0099900")
+            {
+                _game.ChangeGameStage(20);
+                receiveBig();
+            }
             if (Message[0] == '1' || Id != Message[1])
                 return;
             _game.ShotResult(f, Message[4]);
             _game.ChangeGameStage(11);
             startReceiving();
         }
-
+        public void receiveBig()
+        {
+            string namefile = "GotExplosion.jpg";
+            byte[] net_buf = new byte[10240];
+            int len = net_buf.Length;
+            int received;
+            int received_all = 0;
+            if (File.Exists(namefile))
+                File.Delete(namefile);
+            FileStream fs = File.Create(namefile);
+            while (true)
+            {
+                // receive 
+                Array.Clear(net_buf, 0, len);
+                received = this.clientSocket.ReceiveFrom(net_buf, 0, len, SocketFlags.None, ref ipFeedBack);
+                received_all += received;
+                if (received == 0 || received == -1)
+                    break;
+                fs.Write(net_buf, 0, 64);
+                // process 
+            }
+            _game.ChangeText(_game.info, received_all.ToString());
+            fs.Close();
+        }
         public void ReceiveGuestShot()
         {
             while (true)
@@ -65,26 +95,8 @@ namespace Battleship
                 if (!GuestHandle(Encoding.ASCII.GetString(receiveBuffer))) break;
             }
             return;
-            IAsyncResult IDRec = clientSocket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref ipFeedBack, new AsyncCallback(GuestAnswer), clientSocket);
-            haveShot = false;
         }
-
-        private void GuestAnswer(IAsyncResult asyncSend)
-        {
-            //Socket clientSocket = (Socket)asyncSend.AsyncState;
-            string Message = Encoding.ASCII.GetString(receiveBuffer);
-            if (Message == "0099900") clientSocket.EndReceiveFrom(asyncSend, ref ipFeedBack);
-            if (Message[0] == '1' || Message[1] != Id)
-                return;
-            if (Message[2] == '1')
-            {
-                _game.ShotResult(_game.GetEnemyField(Convert.ToInt16(Message[5] - '0'),Convert.ToInt16(Message[6] - '0')), Message[4]);
-            }
-            else if (Message[2] == '0')
-                _game.ShotResult(_game.GetField(Convert.ToInt16(Message[5] - '0'), Convert.ToInt16(Message[6] - '0')), Message[4]);
-            return; 
-
-        }
+        
         private bool GuestHandle(string Message)
         {
             //Socket clientSocket = (Socket)asyncSend.AsyncState;
@@ -143,8 +155,15 @@ namespace Battleship
             int bytessent = clientSocket.EndSendTo(ar);
             if (!(bytessent == 8)) connectionError = true;
             // pierwsze trzy cyfry to rodzaj prosby, czwarta to fakt czy chcesz zostac graczem czy gosciem
-
-            IAsyncResult IDRec = clientSocket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref ipFeedBack, new AsyncCallback(IdReturned), clientSocket);
+            try
+            {
+                IAsyncResult IDRec = clientSocket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref ipFeedBack, new AsyncCallback(IdReturned), clientSocket);
+            }
+            catch (System.Net.Sockets.SocketException)
+            {
+                _game.ChangeText(_game.info, "Nie polaczyles sie z serwerem, sprobuj ponownie.");
+                return;
+            }
         }
 
         private void IdReturned(IAsyncResult asyncSend)
@@ -190,19 +209,41 @@ namespace Battleship
             haveShot = false;
             IAsyncResult shotRec = clientSocket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref ipFeedBack, new AsyncCallback(shotReceived), clientSocket);
         }
-
+        public void sendGameEnd()
+        {
+            _game.ChangeGameStage(20);
+            byte[] sendBuffer;
+            sendBuffer = Encoding.ASCII.GetBytes("0099900");
+            int sended = 0;
+            while (sendBuffer.Length != sended)
+            {
+                sended += clientSocket.SendTo(sendBuffer, sended + 0, sendBuffer.Length - sended, SocketFlags.None, ipEndpoint);
+            }
+            _game.ChangeText(_game.info, "Dostawanie");
+            receiveBig();
+        }
         private void shotReceived(IAsyncResult asyncSend)
         {
             //Socket clientSocket = (Socket)asyncSend.AsyncState;
             //01 23 45 67 89 10/11 12/13 14/15 // 0 1 234 56
             int bytesSent = clientSocket.EndReceiveFrom(asyncSend, ref ipFeedBack);
+            byte[] sendBuffer;
             if (!(bytesSent == 8)) connectionError = true;
             else
             {
                 haveShot = true;
                 var b = Convert.ToInt16('0');
                 char response=_game.ReceiveShot(Convert.ToInt16(receiveBuffer[5] - '0'), Convert.ToInt16(receiveBuffer[6]-'0'));
-                byte[] sendBuffer = MakeMessage("2",response.ToString() + (receiveBuffer[5]-'0').ToString() + (receiveBuffer[6] - '0').ToString());
+                if (response=='9')
+                {
+                    sendGameEnd();
+                    return;
+                }
+                else
+                {
+                    sendBuffer = MakeMessage("2", response.ToString() + (receiveBuffer[5] - '0').ToString() + (receiveBuffer[6] - '0').ToString());
+                }
+                
                 int sended = 0;
                 while (sendBuffer.Length != sended)
                 {

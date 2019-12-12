@@ -106,6 +106,7 @@ namespace Battleship
             game.connect = serverBut;
             game.info = ordersLabel;
             game.startGame = startGame;
+            game.endGame = KoniecGry;
         }
         private void AddFields()
         {
@@ -218,6 +219,12 @@ namespace Battleship
         private void startGame_Click(object sender, EventArgs e)
         {
             connect.GameBegin();
+        }
+
+        private void KoniecGry_Click(object sender, EventArgs e)
+        {
+            game.ChangeGameStage(20);
+            connect.sendGameEnd();
         }
     }
 }

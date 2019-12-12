@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-
 #include <winsock.h>
+
+
+#define buffSize 10240
 
 struct Players
 {
@@ -12,18 +14,115 @@ struct Players
 	struct sockaddr_in endpoint;
 	int playerType; //0 - player 1, 1 - player 2, 2 - guest
 };
+void clearBuf(char* b)
+{
+	int i;
+	for (i = 0; i < buffSize; i++)
+		b[i] = '\0';
+}
+int sendFile(FILE* fp, char* buf, int s)
+{
+	int i, len;
+	if (fp == NULL) {
+		strcpy(buf, "File Not Found!");
+		len = strlen("File Not Found!");
+		buf[len] = EOF;
+		return 1;
+	}
+
+	char ch;
+	for (i = 0; i < s; i++) {
+		ch = fgetc(fp);
+		buf[i] = ch;
+		if (ch == EOF)
+		{
+			printf("\nFile end reached!\n");
+			return 1;
+		}
+			
+	}
+	return 0;
+}
+void sendBig(struct Players player)
+{
+	char net_buf[buffSize];
+	FILE* fp;
+	int packet = 0;
+	int size;
+	int read;
+	int sent;
+	int sentfull;
+	clearBuf(net_buf);
+
+	fp = fopen("Explosion.jpg", "rb");
+	fseek(fp, 0, SEEK_END);
+	size = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+	printf("Total Picture size: %i\n", size);
+	if (fp == NULL)
+		printf("\nFile open failed!\n");
+	else
+		printf("\nFile Successfully opened!\n");
+
+	while (!feof(fp)) 
+	{
+		read = fread(net_buf, 1, sizeof(net_buf), fp);
+		if (ferror(fp) != 0)
+			printf("Blad zapisu danych do pliku.\n");
+		//Send data through our socket 
+		sent = 0;
+		sentfull = 0;
+		do {
+			sent = sendto(player.playersocket, net_buf, read,0, (struct sockaddr*) &player.endpoint, sizeof(struct sockaddr_in));
+			sentfull += sent;
+		} while (sent < 0);
+
+		printf("Packet Number: %i\n", packet);
+		printf("Packet Size read: %i\n", read);
+		printf("Packet Size Sent: %i\n", sentfull);
+		printf(" \n");
+		printf(" \n");
+
+
+		packet++;
+
+		//Zero out our send buffer
+		memset(net_buf, 0, buffSize);
+	}
+	return;
+}
+/*
+int sendall(SOCKET s, char *buf, int *len, struct sockaddr_in endpoint)
+{
+	int total = 0;
+	int bytesleft = *len;
+	int n;
+	while (total < *len) 
+	{
+		n = sendto(s, buf + total, bytesleft, 0, (struct sockaddr*) &endpoint, sizeof(struct sockaddr_in));
+		if (n == -1) { break; }
+		total += n;
+		bytesleft -= n;
+	}
+	*len = total; 
+	return n == -1 ? -1 : 0;
+}
+*/
 void message(char* tab)
 {
 	for (int i = 0; i < 7; i++)
 		tab[i] = '0';
 }
+
+
 int main(int argc, char **argv)
 {
 	WSADATA wsaData; // je´sli to nie zadzia³a
 	//WSAData wsaData; // uÿzyj tego
 	if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0) {
 		fprintf(stderr, "WSAStartup failed.\n");
-		exit(1);	}
+		exit(1);
+	}
 	char recbuf[8];
 	char sendbuf[8];
 	struct Players players[10];
@@ -34,7 +133,7 @@ int main(int argc, char **argv)
 	int socketAmount;
 	SOCKET sdsocket;
 	int addrlen;
-	int r;
+	int r, sent;
 	unsigned int port = 8888;
 	fd_set desset;
 	if ((sdsocket = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
@@ -123,6 +222,37 @@ int main(int argc, char **argv)
 				printf("Limit ogladajacych osiagniety\n");
 			}
 		}
+		else if (strcmp(recbuf, "0099900") == 0)
+		{
+			printf("Wiadomosc Koniec utworzona %s\n", recbuf);
+			for (int i = 0; i < watches; i++)
+			{
+				if (plays == 1 && i == 1) continue;
+				r = 0;
+
+				while (r < 7)
+				{
+					sent = sendto(players[i].playersocket, recbuf + r, 8 - r, 0,
+						(struct sockaddr*) &players[i].endpoint, addrlen);
+					if (sent == 0 || sent == -1)
+					{
+						printf("Wiadomosc napotkala problem %d\n", r);
+						if (sent == -1)
+							perror(send);
+						break;
+					}
+					r += sent;
+				}
+
+				printf("Wiadomosc koniec wyslany %d\n", r);
+			}
+			for (int i = 0; i < watches; i++)
+			{
+				if (plays == 1 && i == 1) continue;
+				sendBig(players[i]);
+			}
+			return;
+		}
 		else
 		{
 			if (plays != 2)
@@ -149,9 +279,17 @@ int main(int argc, char **argv)
 					r = 0;
 					while (r < 7)
 					{
-						r += sendto(players[recipient].playersocket, sendbuf + r, 8 - r, 0,
+
+						sent = sendto(players[recipient].playersocket, sendbuf + r, 8 - r, 0,
 							(struct sockaddr*) &players[recipient].endpoint, addrlen);
-						printf("Strzal w trakcie %d\n", r);
+						if (sent == 0 || sent == -1)
+						{
+							printf("Strzal napotkal problem %d\n", r);
+							if (sent == -1)
+								perror(send);
+							break;
+						}
+						r += sent;
 					}
 					printf("Strzal wyslany %d\n", r);
 				}
@@ -172,8 +310,18 @@ int main(int argc, char **argv)
 						printf("Wiadomosc wynik utworzona %s\n", sendbuf);
 						r = 0;
 						while (r < 7)
-							r += sendto(players[i].playersocket, sendbuf + r, 8 - r, 0,
+						{
+							sent= sendto(players[i].playersocket, sendbuf + r, 8 - r, 0,
 							(struct sockaddr*) &players[i].endpoint, addrlen);
+							if (sent == 0 || sent == -1)
+							{
+								printf("Wynik napotkal problem %d\n", r);
+								if (sent == -1)
+									perror(send);
+								break;
+							}
+							r += sent;
+						}
 						printf("Wynik wyslany %d\n", r);
 					}
 				}
@@ -181,7 +329,14 @@ int main(int argc, char **argv)
 				{
 					memset(sendbuf, 0, 8);
 					sendbuf[0] = '1';
-					sendto(sdsocket, sendbuf, 8, 0, (struct sockaddr*) &remoteaddr, addrlen);
+					sent = sendto(sdsocket, sendbuf, 8, 0, (struct sockaddr*) &remoteaddr, addrlen);
+					if (sent == 0 || sent == -1)
+					{
+						printf("Error napotkal problem %d\n", r);
+						if (sent == -1)
+							perror(send);
+						break;
+					}
 					printf("Zly format \n");
 				}
 
@@ -191,7 +346,14 @@ int main(int argc, char **argv)
 			{
 				memset(sendbuf, 0, 8);
 				sendbuf[0] = '1';
-				sendto(sdsocket, sendbuf, 8, 0, (struct sockaddr*) &remoteaddr, addrlen);
+				sent = sendto(sdsocket, sendbuf, 8, 0, (struct sockaddr*) &remoteaddr, addrlen);
+				if (sent == 0 || sent == -1)
+				{
+					printf("Error napotkal problem %d\n", r);
+					if (sent == -1)
+						perror(send);
+					break;
+				}
 				printf("Zly format \n");
 			}
 		}
