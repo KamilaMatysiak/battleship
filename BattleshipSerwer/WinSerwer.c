@@ -6,7 +6,7 @@
 
 
 #define buffSize 10240
-
+#define smallSize 8
 struct Players
 {
 	int id;
@@ -78,23 +78,6 @@ void sendBig(struct Players player)
 	}
 	return;
 }
-/*
-int sendall(SOCKET s, char *buf, int *len, struct sockaddr_in endpoint)
-{
-	int total = 0;
-	int bytesleft = *len;
-	int n;
-	while (total < *len) 
-	{
-		n = sendto(s, buf + total, bytesleft, 0, (struct sockaddr*) &endpoint, sizeof(struct sockaddr_in));
-		if (n == -1) { break; }
-		total += n;
-		bytesleft -= n;
-	}
-	*len = total; 
-	return n == -1 ? -1 : 0;
-}
-*/
 void message(char* tab)
 {
 	for (int i = 0; i < 7; i++)
@@ -116,6 +99,7 @@ int main(int argc, char **argv)
 	int plays = 0;
 	int watches = 2;
 	int owner = 0, recipient = 0;
+	int ready = 0;
 	struct sockaddr_in myaddr, remoteaddr;
 	int socketAmount;
 	SOCKET sdsocket;
@@ -240,6 +224,37 @@ int main(int argc, char **argv)
 			}
 			return;
 		}
+		else if (strcmp(recbuf, "0022200") == 0)
+		{
+			++ready;
+			if (ready >= 2)
+			{
+				for (int i = 0; i < plays; i++)
+				{
+
+					r = 0;
+					sendbuf[1] = i + '0';
+					sendbuf[2] = '2';
+					sendbuf[3] = '2';
+					sendbuf[4] = '2';
+					while (r < 8)
+					{
+						sent = sendto(players[i].playersocket, sendbuf + r, 8 - r, 0,
+							(struct sockaddr*) &players[i].endpoint, addrlen);
+						if (sent == 0 || sent == -1)
+						{
+							printf("Wiadomosc napotkala problem %d\n", r);
+							if (sent == -1)
+								perror(send);
+							break;
+						}
+						r += sent;
+					}
+
+					printf("Wiadomosc poczatek wyslany %d\n", r);
+				}
+			}
+		}
 		else
 		{
 			if (plays != 2)
@@ -306,7 +321,7 @@ int main(int argc, char **argv)
 						sendbuf[6] = recbuf[6];
 						printf("Wiadomosc wynik utworzona %s\n", sendbuf);
 						r = 0;
-						while (r < 7)
+						while (r < 8)
 						{
 							sent= sendto(players[i].playersocket, sendbuf + r, 8 - r, 0,
 							(struct sockaddr*) &players[i].endpoint, addrlen);

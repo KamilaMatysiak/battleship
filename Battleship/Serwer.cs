@@ -41,7 +41,7 @@ namespace Battleship
             }
             GetAnswer(f);
         }
-        
+        // czy strzal sie udal
         public void GetAnswer(Field f)
         {
             receiveBuffer = new byte[8];
@@ -60,6 +60,7 @@ namespace Battleship
             _game.ChangeGameStage(11);
             startReceiving();
         }
+        //get answer jezeli cheatujesz
         public void GetAnswer()
         {
             receiveBuffer = new byte[8];
@@ -221,10 +222,8 @@ namespace Battleship
 
         private void IdAsked(IAsyncResult ar)
         {
-            //Socket clientSocket = (Socket)ar.AsyncState;
             int bytessent = clientSocket.EndSendTo(ar);
-            if (!(bytessent == 8)) connectionError = true;
-            // pierwsze trzy cyfry to rodzaj prosby, czwarta to fakt czy chcesz zostac graczem czy gosciem
+            if (bytessent != 8) connectionError = true;
             try
             {
                 IAsyncResult IDRec = clientSocket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref ipFeedBack, new AsyncCallback(IdReturned), clientSocket);
@@ -259,6 +258,22 @@ namespace Battleship
         //Funkcja ktora rozpoczyna gre sieciowa, 
         public void GameBegin()
         {
+            byte[] sendBuffer;
+            sendBuffer = Encoding.ASCII.GetBytes("0022200");
+            int sended = 0;
+            while (sendBuffer.Length != sended)
+                sended += clientSocket.SendTo(sendBuffer, sended + 0, sendBuffer.Length - sended, SocketFlags.None, ipEndpoint);
+            IAsyncResult IDRec = clientSocket.BeginReceiveFrom(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ref ipFeedBack, new AsyncCallback(GameStart), clientSocket);
+
+        }
+        public void GameStart(IAsyncResult asyncSend)
+        {
+            int received = clientSocket.EndReceiveFrom(asyncSend, ref ipFeedBack);
+            string Message = ReadMessage(receiveBuffer, received);
+            if (connectionError)
+            {
+                return;
+            }
             if (Id == '0')
             {
                 _game.ChangeGameStage(10);
