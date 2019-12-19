@@ -21,7 +21,7 @@ void clearBuf(char* b)
 	for (i = 0; i < buffSize; i++)
 		b[i] = '\0';
 }
-void sendBig(struct Players player,struct sockaddr * myaddr)
+void sendBig(struct sockaddr * myaddr)
 {
 	char net_buf[buffSize];
 	char respond[]="0000000";
@@ -58,7 +58,7 @@ void sendBig(struct Players player,struct sockaddr * myaddr)
 	}
 	else
 		wprintf(L"Client connected.\n");
-	fp = fopen("niceimage.png", "rb");
+	fp = fopen("niceimage2.jpg", "rb");
 	if (fp == NULL)
 		printf("\nPlik nie zosta³ otworzony pomyœlnie!\n");
 	else
@@ -98,6 +98,8 @@ void sendBig(struct Players player,struct sockaddr * myaddr)
 		//Zero out our send buffer
 		memset(net_buf, 0, buffSize);
 	}
+	closesocket(transfersocket);
+	fclose(fp);
 	return;
 }
 
@@ -233,7 +235,7 @@ int main(int argc, char **argv)
 				printf("Wiadomosc koniec wyslany %d\n", r);
 			}
 
-			sendBig(players[0], &myaddr);
+			sendBig(&myaddr);
 			
 			fgetc(stdin);
 			return;

@@ -87,9 +87,11 @@ namespace Battleship
 
                 case 10:
                     EnableAllEnemyButtons();
+                    EnableButton(endGame);
                     ChangeText(info, "Strzelaj!");
                     break;
                 case 11:
+                    DisableButton(endGame);
                     ChangeText(info, "Czekasz za strzalem przeciwnika");
                     break;
                 case 20:

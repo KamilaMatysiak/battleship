@@ -540,7 +540,7 @@
             this.KoniecGry.Name = "KoniecGry";
             this.KoniecGry.Size = new System.Drawing.Size(143, 58);
             this.KoniecGry.TabIndex = 102;
-            this.KoniecGry.Text = "Zakoncz gre(Cheat)";
+            this.KoniecGry.Text = "Poddaj się";
             this.KoniecGry.UseVisualStyleBackColor = true;
             this.KoniecGry.Click += new System.EventHandler(this.KoniecGry_Click);
             // 
