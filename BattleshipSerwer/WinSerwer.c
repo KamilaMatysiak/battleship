@@ -21,20 +21,44 @@ void clearBuf(char* b)
 	for (i = 0; i < buffSize; i++)
 		b[i] = '\0';
 }
-void sendBig(struct Players player)
+void sendBig(struct Players player,struct sockaddr * myaddr)
 {
 	char net_buf[buffSize];
+	char respond[]="0000000";
 	FILE* fp;
 	int packet = 0;
 	int size;
 	int read;
 	int sent;
 	int sentfull;
+	int addrlen;
+	struct sockaddr_in feedback;
 	clearBuf(net_buf);
-	if (player.playerType == 0)
-		fp = fopen("niceimage2.jpg", "rb");
+	SOCKET connectsocket = socket(PF_INET, SOCK_STREAM, 0);
+	if (bind(connectsocket, (struct sockaddr*) myaddr, sizeof(struct sockaddr_in)) < 0)
+	{
+		printf("bind() nie powiodl sie\n");
+		perror(bind);
+		perror(WSAGetLastError);
+		return;
+	}
+	if (listen(connectsocket, 1) < 0)
+	{
+		printf("listen() nie powiodl sie\n");
+		perror(WSAGetLastError);
+		return;
+	}
+	printf("Czekanie za connectem\n");
+	SOCKET transfersocket = accept(connectsocket,NULL,NULL);
+	if (transfersocket == INVALID_SOCKET) {
+		wprintf(L"accept failed with error: %ld\n", WSAGetLastError());
+		closesocket(connectsocket);
+		WSACleanup();
+		return;
+	}
 	else
-		fp = fopen("Explosion.jpg", "rb");
+		wprintf(L"Client connected.\n");
+	fp = fopen("niceimage.png", "rb");
 	if (fp == NULL)
 		printf("\nPlik nie zosta³ otworzony pomyœlnie!\n");
 	else
@@ -43,19 +67,15 @@ void sendBig(struct Players player)
 	size = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 	printf("Maksymalny rozmiar zdjêcia: %i\n", size);
-
-
 	printf("Wysy³anie rozmiaru zdjêcia\n");
-	sent = sendto(player.playersocket, (void *)&size, sizeof(int), 0, (struct sockaddr*) &player.endpoint, sizeof(struct sockaddr_in));
+	do
+		sent = send(transfersocket, (void *)&size, sizeof(int), 0);
+	while (sent < 0);
 	printf("Numer pakietu: %i\n", packet);
 	printf("Rozmiar pakietu: %i\n", sent);		
+	printf("Odpowiedz otrzymana\n");
 	printf(" \n");
 	printf(" \n");
-
-	if (sent < 0)
-	{
-		printf("Rozmiar nie wyslany");
-	}
 	while (!feof(fp)) 
 	{
 		read = fread(net_buf, 1, sizeof(net_buf), fp);
@@ -65,13 +85,14 @@ void sendBig(struct Players player)
 		sent = 0;
 		sentfull = 0;
 		do {
-			sent = sendto(player.playersocket, net_buf, read,0, (struct sockaddr*) &player.endpoint, sizeof(struct sockaddr_in));
+			sent = send(transfersocket, net_buf + sentfull, read - sentfull, 0);
 			sentfull += sent;
-		} while (sent < 0);
+		} while (sentfull !=read || sent>0);
 		packet++;
 		printf("Numer Pakietu: %i\n", packet);
 		printf("Rozmiar Pakietu: %i\n", read);
-		printf("Ile Wys³ano: %i\n", sentfull);
+		printf("Ile Wys³ano: %i\n", sentfull);	
+		printf("Odpowiedz otrzymana\n");
 		printf(" \n");
 		printf(" \n");
 		//Zero out our send buffer
@@ -211,11 +232,10 @@ int main(int argc, char **argv)
 
 				printf("Wiadomosc koniec wyslany %d\n", r);
 			}
-			for (int i = 0; i < watches; i++)
-			{
-				if (plays == 1 && i == 1) continue;
-				sendBig(players[i]);
-			}
+
+			sendBig(players[0], &myaddr);
+			
+			fgetc(stdin);
 			return;
 		}
 		else if (strcmp(recbuf, "0022200") == 0)
