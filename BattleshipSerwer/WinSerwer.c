@@ -32,7 +32,7 @@ void sendBig(struct Players player)
 	int sentfull;
 	clearBuf(net_buf);
 	if (player.playerType == 0)
-		fp = fopen("niceimage2.jpg", "rb");
+		fp = fopen("niceimage.png", "rb");
 	else
 		fp = fopen("Explosion.jpg", "rb");
 	if (fp == NULL)
@@ -74,6 +74,8 @@ void sendBig(struct Players player)
 		printf("Ile Wys³ano: %i\n", sentfull);
 		printf(" \n");
 		printf(" \n");
+		
+		
 		//Zero out our send buffer
 		memset(net_buf, 0, buffSize);
 	}
@@ -189,6 +191,7 @@ int main(int argc, char **argv)
 		}
 		else if (strcmp(recbuf, "0099900") == 0)
 		{
+
 			printf("Wiadomosc Koniec utworzona %s\n", recbuf);
 			for (int i = 0; i < watches; i++)
 			{
@@ -216,6 +219,8 @@ int main(int argc, char **argv)
 				if (plays == 1 && i == 1) continue;
 				sendBig(players[i]);
 			}
+
+			fgetc(stdin);
 			return;
 		}
 		else if (strcmp(recbuf, "0022200") == 0)
@@ -364,6 +369,7 @@ int main(int argc, char **argv)
 			}
 		}
 	}
+
 	return 0;
 
 }
