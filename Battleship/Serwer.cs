@@ -63,8 +63,6 @@ namespace Battleship
         //get answer jezeli cheatujesz
         public void GetAnswer()
         {
-            try
-            {
                 receiveBuffer = new byte[8];
                 int received = 0;
                 while (received < 8)
@@ -72,15 +70,11 @@ namespace Battleship
                     received += clientSocket.ReceiveFrom(receiveBuffer, 0 + received, receiveBuffer.Length - received, SocketFlags.None, ref ipFeedBack);
                 }
                 string Message = ReadMessage(receiveBuffer, received);
+                receiveBig();
                 if (connectionError)
                 {
                     return;
                 }
-            }
-            catch
-            {
-                MessageBox.Show("Koniec gry :)");
-            }
         }
 
         //Funkcja ktora asynchronicznie czeka za strzalem
@@ -152,7 +146,12 @@ namespace Battleship
             int len = net_buf.Length;
             int received;
             int received_all = 0;
-            received = clientSocket.ReceiveFrom(size_buf, 0, sizeof(Int32), SocketFlags.None, ref ipFeedBack);
+            Socket transferSocket = new Socket(
+    AddressFamily.InterNetwork,
+    SocketType.Stream,
+    ProtocolType.Tcp);
+            transferSocket.Connect(ipEndpoint);
+            received = transferSocket.Receive(size_buf, 0, sizeof(Int32), SocketFlags.None);
             int size = BitConverter.ToInt32(size_buf, 0);
             _game.ChangeText(_game.info, size.ToString());
             while (File.Exists(namefile))
@@ -164,7 +163,7 @@ namespace Battleship
             {
                 // receive 
                 Array.Clear(net_buf, 0, len);
-                received = this.clientSocket.ReceiveFrom(net_buf, 0, len, SocketFlags.None, ref ipFeedBack);
+                received = transferSocket.Receive(net_buf, 0, len, SocketFlags.None);
                 received_all += received;
                 if (received == 0 || received == -1)
                     break;
@@ -329,7 +328,6 @@ namespace Battleship
             {
                 connectionError = true;
                 _game.ChangeGameStage(20);
-                receiveBig();
                 return message;
             }
             if (haveId && Id!=message[1])
